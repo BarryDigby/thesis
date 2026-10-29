@@ -1,0 +1,15 @@
+% !TeX root = ../main.tex
+\begin{center}
+    \vspace*{1.5cm}
+    \section*{Abstract}
+    \phantomsection
+    \vspace{0.5cm}
+\end{center}
+
+\justifying
+\normalsize
+The advent of high-throughput RNA sequencing (RNA-seq) has revolutionized our understanding of the transcriptome, uncovering a rich landscape of non-coding RNAs with vital regulatory functions. Among these, circular RNAs (circRNAs) have emerged as exceptionally stable post-transcriptional regulators capable of modulating oncogenic phenotypes by sequestering microRNAs within competing endogenous RNA (ceRNA) networks. However, translating this biological potential into reproducible discoveries has historically been constrained by computational bottlenecks: high discordance among back-splice junction detection algorithms, the lack of standardized end-to-end analytical pipelines, and fragmented public databases built on conflicting coordinate conventions and nomenclature. 
+
+This thesis details the development of scalable computational infrastructure, reproducible workflows, and database integration frameworks designed to automate and standardize circular RNA analysis, alongside a translational application to anti-androgen resistance in prostate cancer. We present \texttt{nf-core/circrna}, an open-source, containerized Nextflow DSL2 pipeline that provides end-to-end circRNA characterization by integrating consensus quantification across seven algorithms, automated microRNA target prediction, and differential expression analysis. Furthermore, we introduce \texttt{pycircdb}, a Python command-line framework that unifies nine disparate public circRNA databases into a standardized, 0-based coordinate system, utilizing Apache Hamilton and columnar Parquet storage to enable high-throughput batch annotation of circRNA sequences, microRNA targets, and RNA-binding protein interactions on standard hardware. Finally, we apply these computational tools and network-modelling strategies to investigate enzalutamide resistance in prostate cancer, constructing a biologically constrained circRNA--miRNA--mRNA regulatory network that yields a 23-gene prognostic signature predictive of five-year biochemical recurrence across multi-cohort clinical patient datasets.
+
+\newpage

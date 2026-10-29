@@ -1,0 +1,252 @@
+{\Huge \bfseries \noindent Chapter 3}
+\vspace{-1em} 
+\section*{\LARGE nf-core/circrna: a portable workflow for the quantification, miRNA target prediction and differential expression analysis of circular RNAs}
+\addcontentsline{toc}{section}{3\quad nf-core/circrna: a portable workflow for the quantification, miRNA target prediction and differential expression analysis of circular RNAs}
+\setcounter{section}{3}
+\setcounter{subsection}{0}  % reset so next \subsection is 2.1
+\renewcommand{\chapternum}{3}
+
+% Reset figure/table numbering per chapter
+\renewcommand{\thefigure}{\chapternum.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{\chapternum.\arabic{table}}
+\setcounter{table}{0}
+
+
+\begin{center}
+    \textit{The content of this chapter has been published as:} \par
+    \vspace{0.55cm}
+    \textbf{Barry Digby}, Stephen P. Finn, and Pilib Ó Broin. “nf-core/circrna: a portable
+workflow for the quantification, miRNA target prediction and differential ex-
+pression analysis of circular RNAs”. In: BMC Bioinf. 24.1 (Dec. 2023), pp. 1-15.
+ISSN: 1471-2105. DOI: 10.1186/s12859-022-05125-8.
+\end{center}
+
+\subsection*{Abstract}
+
+Circular RNAs (circRNAs) are a class of covalently closed non-coding RNAs that have garnered increased attention from the research community due to their stability, tissue-specific expression and role as transcriptional modulators via sequestration of miRNAs. Currently, multiple quantification tools capable of detecting circRNAs exist, yet none delineate circRNA-miRNA interactions, and only one employs differential expression analysis. Efforts have been made to bridge this gap by way of circRNA workflows, however these workflows are limited by both the types of analyses available and computational skills required to run them.
+
+
+We present nf-core/circrna, a multi-functional, automated high-throughput pipeline implemented in nextflow that allows users to characterise the role of circRNAs in RNA Sequencing datasets via three analysis modules: (1) circRNA quantification, robust filtering and annotation (2) miRNA target prediction of the mature spliced sequence and (3) differential expression analysis. nf-core/circrna has been developed within the nf-core framework, ensuring robust portability across computing environments via containerisation, parallel deployment on cluster/cloud-based infrastructures, comprehensive documentation and maintenance support. nf-core/circrna reduces the barrier to entry for researchers by providing an easy-to-use, platform-independent and scalable workflow for circRNA analyses. Source code, documentation and installation instructions are freely available at \href{https://nf-co.re/circrna}{https://nf-co.re/circrna} and \href{https://github.com/nf-core/circrna}{https://github.com/nf-core/circrna}.
+
+
+\subsection{Introduction}
+
+CircRNAs are a class of non-coding RNAs (ncRNAs) formed by the back-splicing of precursor messenger RNA (pre-mRNA) to create a single-stranded covalently closed RNA loop structure. Initially discovered in plant viroids \cite{Sanger1976}, yeast mitochondrial RNAs \cite{Arnberg1980Feb}, and the hepatitis $\delta$ virus \cite{Kos1986Oct}, circRNAs were believed to be a by-product of aberrant splicing or intermediates discarded from intron-lariat debranching \cite{Cocquerelle1993Jan,Qian1992}, going largely unstudied during the formative years of RNA-Seq due to poly-A selection protocols. Recent advancements in bioinformatics methods have facilitated the detection of circRNAs in RNA-Seq datasets, with interest in the field revitalised when Salzman et al. identified circRNAs in cancer and non-cancer cell lines \cite{Salzman2012} resulting in a shift in the paradigm of RNA-Seq protocols enabling detection of circRNAs (total RNA-Seq, ribosomal RNA (rRNA) depleted RNA-Seq). \par
+Several characteristics of circRNAs make them ideal candidates as clinical biomarkers for cancers and diseases; lack of 5' and 3' ends conferring resistance to RNase degradation granting much higher half-lives than their linear counterparts \cite{Salzman2012,findcirc}, tissue- and developmental-stage specific expression, and abundance in blood, serum, plasma and exosomes \cite{Memczak2015, Bahn2015}. Recent evidence has accumulated demonstrating circRNAs viability as a biomarker, with reports of circRNAs exhibiting differential expression in gastric cancer \cite{Li2015Apr}, colorectal cancer \cite{Bachmayr-Heyda2015}, bladder cancer \cite{Zhong2016}, cardiovascular disease \cite{Tan2016} and Alzheimer's disease \cite{Panda2017} amongst many others. circRNAs have also been shown to harbour functionally active and evolutionarily conserved microRNA response elements (MREs) within their mature spliced sequence \cite{Hansen2013Mar,Thomas2014Aug}, suggesting a regulatory role within the competing endogenous RNA (ceRNA) network by titrating the limited pool of endogenous miRNAs available to mRNAs \cite{Denzler2014Jun}. One such example is circCCDC66, which is hypothesized to play a protective role for the MYC oncogene by binding to miR-33b and miR-99 in colorectal cancer. Knockdown of circCCDC66 displayed reduced MYC expression, whilst administration of miR-33b and miR-99 reversed the knockdown effect, inferring circCCDC66 is capable of modulating mediating MYC expression via the ceRNA network \cite{Hsiao2017}.
+\par
+Regarding the quantification, miRNA target prediction and differential expression analysis of circRNAs, several workflows currently exist (Table \ref{tab:c2workflowtables}). However, the majority of these workflows are limited by the type of analysis they can perform, often acting as either: 1) a downstream analysis toolkit requiring the user to supply circRNA quantification results, or 2) a workflow offering multiple quantification tools to generate high confidence circRNA calls. Both scenarios necessitate in-house computational expertise to supplement the missing elements of the analysis, resulting in a high barrier to use for both novice and seasoned researchers alike due to the non-standardised input requirements to each workflow.\par
+
+
+\begin{centering}
+\begin{table}[h!]
+    \caption[List of current circRNA analysis workflows]{\textbf{List of current circRNA analysis workflows}.}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{lllcccc}
+    \toprule
+    \textbf{Pipeline} & \textbf{Published} & \textbf{Dependencies} & \textbf{CQ} & \textbf{MP} & \textbf{DE} & \textbf{Installation} \\ \toprule 
+    CirComPara \cite{CirComPara} & 2017 & \begin{tabular}[c]{@{}c@{}}Python, R\\ or Docker\end{tabular} & \cmark & \xmark & \begin{tabular}[c]{@{}l@{}}linear\\ RNA\end{tabular} & \begin{tabular}[c]{@{}c@{}}Source code,\\ DockerHub\end{tabular} \\
+    CirComPara2 \cite{CirComPara2} & 2021 & \begin{tabular}[c]{@{}l@{}}Python, R\\ or Docker\end{tabular} & \cmark & \xmark & \xmark & \begin{tabular}[c]{@{}c@{}}Source code,\\ DockerHub\end{tabular} \\
+    DEBKS \cite{DEBKS} & 2021 & Python & \xmark & \xmark & \cmark & \begin{tabular}[c]{@{}c@{}}Source code,\\ Conda, pip\end{tabular} \\
+    FcircSec \cite{FcircSEC} & 2020 & R & \xmark & \xmark & \xmark & CRAN \\
+    circRNAProfiler \cite{circRNAprofiler} & 2020 & R & \xmark & \cmark & \cmark & Bioconductor \\
+    circtools \cite{circtools} & 2019 & Python, R & \cmark & \xmark & \cmark & Conda, Pypi \\
+    circMeta \cite{circmeta} & 2020 & R & \xmark & \xmark & \cmark & \begin{tabular}[c]{@{}c@{}}Source code\\ via devtools\end{tabular} \\
+    circRNAwrap \cite{circRNAwrap} & 2019 & Perl, Python, R & \cmark & \xmark & \cmark & \begin{tabular}[c]{@{}c@{}}Manual\\ Installation\end{tabular} \\
+    Ularcirc \cite{Ularcirc} & 2019 & R, R Shiny & \xmark & \cmark & \xmark & Bioconductor \\
+    \textbf{nf-core/circrna} \cite{Digby2023Dec} & \textbf{2023} & \textbf{\begin{tabular}[c]{@{}c@{}}nextflow, java,\\ Docker/Apptainer\end{tabular}} & \textbf{\cmark} & \textbf{\cmark} & \textbf{\cmark} & \textbf{DockerHub} \\ \toprule
+    \multicolumn{7}{l}{\begin{tabular}[c]{@{}l@{}}\textbf{\textit{CQ}} circRNA quantification\\ \textbf{\textit{MP}} miRNA prediction\\ \textbf{\textit{DE}} differential expression\end{tabular}}
+    \end{tabular}}
+\label{tab:c2workflowtables}
+\end{table}
+\end{centering}
+
+To address these shortcomings, we present nf-core/circrna, a workflow for the quantification, miRNA target prediction and differential expression analysis of circRNAs in RNA-Seq data developed using nextflow \cite{DiTommaso2017}. The pipeline has been developed under the specifications of the nf-core framework \cite{Ewels2020Mar}, ensuring best practices in pipeline development and maintenance.
+
+\subsection{Implementation}
+\subsubsection{nf-core/circrna architecture}
+The workflow is modularised via processes, whereby each process represents an individual task within the workflow. Nextflow automatically distributes each process in an isolated environment where task execution is performed within a container, ensuring efficient utilization and scaling of computing resources user-defined via configuration files. By utilising containers, the arduous task of installing and satisfying software dependencies has been completely removed, thereby facilitating rapid `out of the box' deployment and ensuring reproducible analyses through pinned software versions.
+\par
+nf-core/circrna is configured to run on local machines, high performance compute clusters and cloud infrastructures alike, facilitating most deployment scenarios via customisable configuration profiles. Profiles for popular platforms (AWS, Azure, Google Cloud) and multiple research institutions can be found at (\url{https://github.com/nf-core/configs}). In the event ones institution is not represented, users are encouraged to fork the nf-core/circrna repository and make the appropriate changes to the configuration profile, reflecting the task scheduler and min/max computational resources available before attempting to deploy the workflow.
+\par
+Comprehensive documentation including instructions to perform a test dataset analysis can be found at \url{https://nf-co.re/circrna}. Furthermore, the nf-core community harbours an active Slack channel where users can contact the authors directly with queries regarding the workflow, or open an issue on the workflows github page. Three dependencies are required to run nf-core/circrna: Java ($>$=8), the latest version of nextflow \cite{DiTommaso2017} and a software container client such as Docker \cite{Docker} or Apptainer (formerly Singularity) \cite{Apptainer}.
+
+\subsubsection{nf-core/circrna functionality}
+The functionality of nf-core/circrna can be summarized by three core analysis modules: 1) circRNA discovery and quantification 2) miRNA target prediction and 3) differential expression analysis (Figure \ref{fig:1}). The circRNA discovery module is required, however users may choose to include or omit the miRNA prediction or differential expression modules to suit their analysis needs. Pre-processing steps are optional, depending on the format and quality of the input data supplied to the workflow.
+\par
+The pipeline accepts paired-end RNA-Seq data in the form of FASTQ files or BAM files as inputs to the workflow. In the event BAM files are supplied, the workflow will automatically revert the BAM files to paired end FASTQ files for back-splice junction detection. Summary statistics of read quality, sequencing artefacts and adapter contamination are generated using FastQC \cite{Andrews}, with an optional parameter available to perform adapter removal and read filtering using BBDUK \cite{Bushnell}, allowing the user to pass raw or trimmed reads to the circRNA discovery module. 
+\par
+Reference annotation files (FASTA, GTF) are automatically downloaded via the Illumina iGenomes database, with 18 species currently supported by the workflow in ENSEMBL, UCSC and NCBI annotations where available. In addition to providing correctly formatted reference files to the workflow, the iGenomes database hosts genome index files compatible with multiple aligners, significantly reducing the computational cost of analyses. In the event the user is working with a non-model organism, reference files can be supplied to the workflow manually.
+
+\begin{figure}[h!]
+    \includegraphics[width=\textwidth]{Chapter2/Figures/figure1.png}
+    \vspace{-5mm}
+    \caption[Schematic overview of nf-core/circrna analysis modules]{\textbf{Schematic overview of nf-core/circrna analysis modules}.}
+    \label{fig:1}
+\end{figure}
+
+\subsubsection{circRNA Discovery}
+nf-core/circrna currently offers seven circRNA quantification tools: CircExplorer2 \cite{CIRCexplorer2}, circRNA\_finder \cite{circRNAfinder}, DCC \cite{DCC}, CIRIquant \cite{CIRIquant}, MapSplice \cite{MapSplice}, find\_circ \cite{findcirc} and Segemehl \cite{segemehl}. As both CIRCexplorer2 and CIRIquant can parse the outputs from multiple aligners, we define CIRCexplorer2 as utilising STAR \cite{STAR} 2-pass mode prior to parsing, whilst CIRIquant utlises its canonical BWA \cite{BWA} - CIRI2 \cite{CIRI2} workflow. The user may select one, all or any combination of circRNA tools available in the workflow by providing a list to the `\code{-{}-tool}' parameter. In the scenario where more than one quantification tool has been selected, the parameter `\code{-{}-tool\_filter}' accepts as input a positive integer \textit{n} to perform consensus based filtering on called circRNAs, requiring circRNAs to be called by at least \textit{n} quantification tools during the count matrix generation step. Users can also apply one of two aggregation functions to circRNAs called by multiple tools using the `\code{-{}-}duplicates\_fun' parameter, which accepts `max' or `mean' returning the highest count value or averages, respectively. To reduce spurious circRNA candidates, the parameter `\code{-{}-bsj\_filter}' filters circRNAs based on the number of reads spanning the back-splice junction site during parsing of the raw quantification tool outputs.
+\par 
+Candidates that satisfy the filtering thresholds are passed to an in-house reference-guided circRNA annotation script detailing circRNA type, parent gene, underlying exons and mature spliced length, producing an extended BED-12 output file. The in-house script considers the four following cases for circular candidates: \textit{Circular candidates start and end positions overlap exon boundaries}: If circular candidates start and end positions perfectly overlap exon boundaries, the
+candidate is marked as an exonic circRNA, or simply `circRNA'. \textit{Circular candidates start and end positions imperfectly overlap exon boundaries}: If the start and end positions are suitably within range ($<$ 200bp) of an exon boundary, the candidate is assumed to be a circRNA. However, if one of the start or end position reside outside of the range of an exon boundary ($>$ 200bp), the circular candidate is assumed to be an exon-intron circRNA (EI-circRNA). Users can toggle the 200bp distance via the `\code{-{}-exon\_boundary}' parameter. \textit{Circular candidate resides within a gene, but does not overlap any exon boundaries}: These circular candidates are marked as intronic circular RNAs (ciRNAs). \textit{Circular candidates do not overlap any features in the reference GTF file}: Such candidates are assumed to be intergenic circRNAs and will have an `NA' description for underlying transcripts and parent gene in the output file. Due to the scripts reliance on reference annotations, the workflow is suitable only for analyses of species for which a reference GTF file exists.
+\par
+Finally, utilising the information held in the BED12 file, the circRNA\_discovery module outputs the mature spliced sequence of each called circRNA in FASTA format and generates a circRNA count matrix for downstream statistical testing, which are used as inputs for the `miRNA\_prediction' and `differential\_expression' modules, respectively. To access the raw output files generated by each quantification tool, users can toggle the `\code{-{}-save\_intermediates} boolean parameter to copy files from the work directory to the specified results directory.
+\par
+
+\subsubsection{miRNA prediction}
+To elucidate the regulatory role of circRNAs, nf-core/circrna offers a miRNA prediction module to identify miRNA response element (MRE) sites within the mature spliced sequence and back-splice junction site of detected circRNAs using both miRanda \cite{miranda} and TargetScan \cite{Targetscan} prediction algorithms. To reduce the number of spurious calls, target miRNAs must be called by both target prediction algorithms. The predictions are output in a results file per sample, detailing circRNA-miRNA node/edge membership complete with miRanda scores, minimum free energy (Kcal/mol) and site type (6mer, 7mer-m8, 7mer-A1, 8mer). Should the user wish to apply strict post-hoc filtering, we suggest users remove 6mers and miRNAs with a minimum free energy score of $>=$-20.00Kcal/Mol \cite{Clark2018}.
+
+\subsubsection{Differential expression analysis}
+nf-core/circrna offers a differential expression module to detect differentially expressed circRNAs and model changes in circRNA expression relative to its host gene guided by the phenotype.csv file provided by the user. It is important to note that pre-filtered datasets with linear RNAs removed are not suitable for the differential expression module. \par Firstly, linear RNAs are quantified using Hisat2 and StringTie \cite{Pertea2016} to determine both host gene expression and library size factors, which are utilised to normalize the circRNA count matrix. Following normalization, quality control plots are generated to assess sample heterogeneity: analysis of principal components via PCA plots and hierarchical clustering of samples via heatmaps and dendograms. The workflow automates differential expression analysis for all possible combinations of the levels provided under the column `condition', whilst controlling for additional covariates added to the phenotype design file using DESeq2 \cite{Love2014Dec}. For each contrast, the workflow reports both up-regulated and down-regulated circRNAs, plots of global expression patterns via heatmaps, volcano and MA plots, and the distribution of adjusted and non-adjusted p-values. Furthermore, for each differentially expressed circRNA returned by the contrast, boxplots are generated displaying the normalized expression between experimental conditions. To compliment the circRNA results, the workflow concurrently performs linear RNA-Seq differential expression analysis. \par
+The CircTest \cite{DCC} R package employs a beta-binomial model to test differences between circRNA and host gene expression to identify cases of enrichment or depletion of circRNA relative to the linear transcripts from the same host genes. The module outputs PDF plots of circRNA-host gene line plots, ratio plots and a table of the statistical results for users.
+
+\subsection{Results and discussion}
+\subsection*{nf-core/circrna demonstration full dataset}
+To showcase the utility of nf-core/circrna in a single execution, we recapitulated a previously published study investigating the effect of mutant RNA binding homolog FUST-1 on circRNA biogenesis in total RNA seq samples of \textit{C. elegans} (PRJNA742881) \cite{Cao2021} Table \ref{tab:celdataset}. \par
+
+\begin{table}[h!]
+\centering
+\caption[Run information using PRJNA742881 dataset]{\textbf{Run information using PRJNA742881 dataset}}
+\label{tab:celdataset}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{cccccc}
+\toprule
+\shortstack{\textbf{Project}\\\textbf{Accession}} & \shortstack{\textbf{Genome}\\\textbf{Build}} & \shortstack{\textbf{Run}\\\textbf{Time}} & \shortstack{\textbf{CPU}\\\textbf{Hours}} & \shortstack{\textbf{Sample}\\\textbf{ID}} & \shortstack{\textbf{Number of}\\\textbf{reads}} \\
+\midrule
+\multirow{6}{*}{PRJNA742881} & \multirow{6}{*}{WBcel235} & \multirow{6}{*}{18h 21m 20s} & \multirow{6}{*}{1566} & N2\_1 & 72651039 \\
+    &   &   &   & N2\_2  & 92546415  \\
+    &   &   &   & N2\_3  & 82870805   \\
+    &   &   &   & fust1\_1 & 70194536 \\
+    &   &   &   & fust1\_2 & 89945035 \\
+    &   &   &   & fust1\_3 & 86470345  \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+Setting up the analysis required minimal effort -- raw sequencing data was retrieved using nf-core/fetchngs \cite{fetchngs} by providing the sequencing archive project accession number, a sample CSV file was constructed specifying the sample ID's and sample paths, a phenotype CSV file was designed detailing sample metadata for DESeq2 and both the `WBcel235' and `cel' strings were passed to the workflow to automatically download ENSEMBL reference annotation and miRNA database files, respectively. The analysis was run on a local SLURM HPC cluster with maximum ncpu and cpu memory limits set to 8 and 60 GB, representing a moderate level of resources feasible for most research labs. \par
+
+\begin{figure}
+    \makebox[\textwidth][c]{
+    \includegraphics[width=1.2\textwidth]{Chapter2/Figures/figure2.png}
+    }
+    \vspace{5mm}
+    \caption[Comparison of filtered PRJNA742881 circRNAs]{\textbf{Comparison of filtered circRNAs} \textbf{(A)} circRNAs called by each quantification tool in this study. \textbf{(B)} common circRNAs in this study vs. PRJNA742881. Filtered circRNAs were required to have at least 15 BSJ reads called by CIRIquant. \textbf{(C)} Genomic distribution of 4435 common filtered circRNAs (outer layer), 2420 additional circRNAs discovered by nf-core/circrna (middle layer) and 521 circRNAs unique to PRJNA742881 (inner layer).}
+    \label{fig:2}
+\end{figure}
+
+\begin{centering}
+\begin{figure}[h!]
+    \makebox[\textwidth][c]{
+    \includegraphics[width=1.2\textwidth]{Chapter2/Figures/figure3.png}
+    }
+    \vspace{5mm}
+    \caption[Workflow outputs (PRJNA742881)]{\textbf{nf-core/circrna sample outputs (PRJNA742881)}: \textbf{(A)} Heatmap of differentially expressed circRNAs \textbf{(B)} Principal component bi-plot of PRJNA742881. \textbf{(C)} Volcano plot of differentially expressed circRNAs.}
+    \label{fig:3}
+\end{figure}
+\end{centering}
+
+Based on the results of the simulated dataset (Table \ref{tab:metrics}), CIRCexplorer2, CIRIquant, find\_circ and MapSplice were chosen for circRNA quantification due to their high F1 scores ($>$ 91\%). The original analysis by Cao et. al used CIRCexplorer2, DCC and CIRI2. The justification for not using CIRI2 and DCC are as follows: CIRIquant is the successor to CIRI2, acting as a wrapper script around CIRI2 and as such, CIRI2 remains the underlying circRNA detection software. DCC requires an extremely high amount of RAM (analysis failed with 120GB RAM allocated to DCC processes), most likely caused by the exceptionally high coverage of circRNAs in the RNase R Treatment, Polyadenylation, and Poly(A)$+$ RNA Depleted (RPAD) dataset. Due to it's computational inefficiency and high false positive rate in Table \ref{tab:metrics}, we reasoned that the analysis would not suffer due to its omission. \par
+In less than 19 hours, a single execution of nf-core/circrna produced a comprehensive profile of circRNAs in N2 and fust1 \textit{C. elegans} samples, recovering 4,435 filtered circRNAs detected by Cao et al. and an additional 2,420 circRNAs that passed stringent filtering parameters (Figure \ref{fig:2}). A selection of outputs from the `differential\_expression' module are given in Figure \ref{fig:3}, demonstrating the workflow's ability to generate interpretable results for end users. 
+
+\subsection{nf-core/circrna performance evaluation}
+\subsubsection{Computational cost}
+To assess the performance and resource consumption of nf-core/circrna, the run-time and memory (RAM) usage during the analysis of PRJNA742881 was recorded for each process (Figure \ref{fig:4}) with trivial tasks such as file reformatting are omitted from the figure. Per-process usage statistics revealed the most memory intensive processes were the alignment steps for both find\_circ and CIRIquant (38.26 GB, 37.37GB). All other processes in the workflow required minimal resources ($<$ 10 GB). With respect to process run-times, the alignment steps for MapSplice and CIRIquant averaged 209 and 139 minutes, respectively. The customised annotation script averaged a 131 minute run time, however this process is sensitive to the number of circRNA candidates provided to the process, which can be refined using the `-{}-bsj\_reads' parameter. Overall, the performance showcases the efficiency of nf-core/circrna in appropriating tasks in a timely and memory efficient manner, thus making the pipeline deployable on most computing environments. 
+
+\begin{figure}[h!]
+    \includegraphics[width=\textwidth]{Chapter2/Figures/figure4.png}
+    \vspace{-10mm}
+    \caption[Computational performance (PRJNA742881)]{\textbf{nf-core/circrna computational performance (PRJNA742881)}. \textbf{A}. Time elapsed per-process in minutes. \textbf{B.} RAM memory consumed per-process in gigabytes.}
+    \label{fig:4}
+\end{figure}
+
+
+\subsubsection{Quantification tool performance}
+To assess the performance of nf-core/circrna and it's constituent quantification tools, the workflow was run on a simulated dataset to calculate precision, sensitivity and F1 score performance metrics. The simulated circRNA dataset comprising 1,450,328 synthetic paired-end reads of 101bp in length and 350bp insert size was derived using an overhauled version of CIRIsimulator.pl \cite{CIRI} designed by Zeng et al. \cite{Zeng2017Jun}. This re-worked version of the tool can accept as input circRNA database files from CircBase \cite{circbase}, allowing users to recapitulate \textit{bona fide} circRNAs based on verified back-splice junction coordinates as opposed to the generation of synthetic circRNA reads via the joining of 2 non-collinear exons at random. \par 
+7,445 glioblastoma circRNAs were downloaded from circRNADb \cite{circrnadb} and reformatted to conform to CircBase specifications before being supplied as inputs to CIRIsimulator.pl. A total of 7,267 glioblastoma circRNAs were generated by the tool for use in the analysis. As there are no true negatives in the simulated dataset, and all non-true positives are viewed as a false positive, the fraction of relevant instances retrieved by a tool is given by precision, the fraction of relevant instances retrieved relative to the number available instances is given by sensitivity, and the F1 score represents the harmonic mean of precision and sensitivity.  \par
+The results of the simulated analysis are given in Table \ref{tab:metrics}. It is important to note sensible filtering parameters were applied to each set of quantification tool results - called circRNAs were required to have at least 2 reads spanning the back-splice junction site. In addition to assessing the performance of each individual quantification tool, circRNAs that had been called by at least two quantification tools via the `\code{-{}-tool\_filter}' parameter were extracted from each set of individual results. The resulting set produced scores of 99.83\%, 96.12\% and 97.94\% for precision, sensitivity and F1, respectively, demonstrating the efficacy of a consensus-based approach to circRNA quantification. 
+
+
+\begin{table}[h!]
+\caption[Performance metrics (glioblastoma dataset)]{Performance metrics of nf-core/circrna quantification tools on the simulated glioblastoma dataset.\label{tab:metrics}}
+\centering
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccccr}
+\toprule
+\textbf{Tool} & \textbf{Detected} & \shortstack{\textbf{True}\\\textbf{Positives}} & \textbf{Precision} & \textbf{Sensitivity} & \textbf{F1} & \shortstack{\textbf{Run}\\\textbf{Time}} & \textbf{Memory} \\
+\midrule
+CIRCexplorer2   & 6270 & 6259 & 99.82\% & 86.13\% & 92.47\% & 7m  & 20 GB \\
+CIRIquant       & 6668 & 6663 & 99.93\% & 91.69\% & 95.63\% & 13m & 65 GB \\
+circRNA\_finder & 6171 & 5997 & 97.18\% & 82.52\% & 89.25\% & 7m  & 20 GB \\
+DCC             & 8397 & 6344 & 75.55\% & 87.30\% & 81.00\% & 34m & 21 GB \\
+find\_circ      & 6217 & 6202 & 99.76\% & 85.34\% & 91.99\% & 6m  & 3 GB  \\
+MapSplice       & 6155 & 6153 & 99.97\% & 84.67\% & 91.69\% & 9m  & 6 GB  \\
+Segemehl        & 4655 & 4558 & 97.92\% & 62.72\% & 76.46\% & 6m  & 50 GB \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+Another useful metric for users to consider when selecting quantification tools for nf-core/circrna is the proportion of common candidates called by each quantification tool. Previously described by Zeng et al. \cite{Zeng2017Jun}, the proportion of common circRNAs shared between two quantification tools $i$ and $j$ can be represented as $C(i,j)$, with the total number of candidates detected by each tool is $N_i$ and $N_j$, respectively. Thus, for tool $i$, the proportion of common candidates is $P(i,j) = C(i,j)/N_i$ and for tool $j$ the proportion of common candidates is $P(j,i) = C(j,i)/N_j$. Pairwise comparisons for all tools in the simulated dataset were generated and represented using a heatmap (Figure \ref{fig:5}). The heatmap can be read in two directions, permitting the bidirectional query of overlapping sets between two quantification tools. When focusing on a specific column, each cell reflects the proportion of common candidates detected by the column tool that were also detected by the corresponding row tool. Conversely, for each row, the cells represent the proportion of common candidates detected by the corresponding column tool that were also recovered by the row tool. \par
+Segemehl detected 4,655 circRNAs with 97.92\% precision in the filtered simulated dataset however, it was unable to recover a high proportion of circRNAs detected by other tools, indicating a conservative approach to calling circRNAs. In contrast, DCC detected 8,397 circRNAs, the highest amount detected by any tool in the simulated dataset. DCC produced a high proportion of circRNAs that were not covered by other tools, suggesting a high rate of false positives - confirmed by its 75.55\% precision score. When using the proportion of common candidates to inform quantification tool choices, users should take caution when using DCC by applying sensible filtering parameters to reduce the number of false positives, and supplement Segemehls conservative results with other quantification tools. Encouragingly, CIRCexplorer2, CIRIquant, find\_circ and MapSplice results were all found to have high agreement - a high proportion of circRNA candidates detected by these methods were frequently detected by one another - and high precision scores, indicating robust methods for detecting circRNAs.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter2/Figures/figure5.png}
+    \vspace{5mm}
+    \caption[Proportion of common candidates (glioblastoma dataset)]{The proportion of common circRNA candidates called by each quantification tool in the simulated glioblastoma dataset. }
+    \label{fig:5}
+\end{figure}
+
+\subsubsection{Optimal parameter selection}
+To further advise users on optimal parameter selections for the circrna\_discovery module, we performed an analysis on every possible combination of tools using the simulated dataset coupled with iterative filtering using the `\code{-{}-tool\_filter}' parameter. Our goal was to identify parameters which achieve high performance at the lowest computational cost (i.e requiring the fewest amount of quantification tools in a run).  Briefly, a combinatorics approach was taken whereby each set of quantification tool results were used as inputs to generate all possible combinations: $ _{n}C_{k} = \frac{n!}{(n-k)!}$ where $n = 6$ and $k = 1 \dots 6$, resulting in 126 unique sets after the removal of duplicates. In Figure \ref{fig:6}A, the x-axis depicts the number of quantification tools included in the combinatoric sets, whilst the y-axis displays the corresponding mean value for precision, sensitivty and F1 score. Each colored line represents the value selected for the parameter `\code{-{}-tool\_filter}', requiring circRNAs in sets to be called by at least \textit{n} tools. \par
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter2/Figures/figure6.png}
+    \vspace{-10mm}
+    \caption[Optimal parameter selection]{\textbf{nf-core/circrna optimal parameter selection}(\textbf{A}) Performance metrics for each combinatorics set of results demonstrating the effect of `-{}-tool\_filter' and number of quantification tools included. (\textbf{B}) T-test of all sets including DCC vs. those without DCC for precision, sensitivity and F1 score. (\textbf{C}) Principal component analysis of the sets, displaying the loadings for precision, sensitivity and F1 score.}
+    \label{fig:6}
+\end{figure}
+
+We observed an inflection point in the lineplot for F1 scores when three quantification tools were selected and `-{}-tool\_filter' was set to two. Increasing the number of quantification tools resulted in minimal performance gains, whilst applying stricter filtering thresholds via `-{}-tool\_filter' greatly reduced sensitivity. The top ten performing combinations of set size three and `-{}-tool\_filter 2' ranked by F1 score are given in Table \ref{table:topcombinations}. Full performance metric results for all iterations of `-{}-tool\_filter' are available in Supplementary file \hyperlink{chp2suppfile1}{1}.
+\par 
+
+\begin{table}[t!]
+\caption[Top quantification tool combinations]{Top 10 performing quantification tool combinations at the lowest computational cost in the simulated dataset, ranked by F1 score.}
+\centering
+\footnotesize
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lccr}
+  \toprule
+\textbf{Combination} & \textbf{Precision} & \textbf{Sensitivity} & \textbf{F1} \\ 
+  \midrule
+CIRCexplorer2,CIRIquant,Segemehl & 98.47\% & 97.21\% & 97.83\% \\ 
+  CIRIquant,MapSplice,Segemehl & 98.55\% & 96.99\% & 97.76\% \\ 
+  CIRCexplorer2,CIRIquant,find\_circ & 99.59\% & 95.89\% & 97.70\% \\ 
+  CIRCexplorer2,CIRIquant,MapSplice & 99.74\% & 95.54\% & 97.60\% \\ 
+  CIRIquant,find\_circ,MapSplice & 99.70\% & 95.57\% & 97.59\% \\ 
+  CIRCexplorer2,find\_circ,Segemehl & 98.33\% & 96.57\% & 97.45\% \\ 
+  CIRCexplorer2,MapSplice,Segemehl & 98.50\% & 96.41\% & 97.44\% \\ 
+  CIRIquant,find\_circ,Segemehl & 98.37\% & 96.46\% & 97.41\% \\ 
+  CIRCexplorer2,find\_circ,MapSplice & 99.61\% & 95.28\% & 97.40\% \\ 
+  CIRCexplorer2,CIRIquant,circRNA\_finder & 97.51\% & 97.18\% & 97.35\% \\ 
+   \midrule
+\end{tabular}}
+\label{table:topcombinations}
+\end{table}
+
+Furthermore, we were interested in identifying quantification tools that negatively impacted the performance in each of the sets. Clustering analysis of the matrix containing precision, sensitivity and F1 score for all 126 unique sets revealed sets containing results from the tool DCC negatively impacted performance metrics. This was formally tested using a t-test (Figure \ref{fig:6}B) and depicted using principal component analysis whereby the first principal component clearly displays sets containing DCC and negatively correlated with the loadings for precision and F1 score, respectively. DCC is the only quantification tool that utilises STAR 2-pass mode, greatly increasing the sensitivity around splice junction sites at the cost of false positives \cite{Engstrom2013Dec}. Users should take this information into consideration when selecting quantification tools for their own analysis and apply sensible filtering parameters to reduce spurious calls. 
+
+
+\subsection{Conclusion}
+nf-core/circrna is the first portable workflow capable of performing the quantification, miRNA target prediction and differential expression analysis of circRNAs in a single execution. Its ease of use greatly reduces the barrier to entry for users seeking to characterise the role of circRNAs in the ceRNA network. We look forward to the workflows release and subsequent engagement with the research community - as the field of circRNA analyses advances, we will effort to incorporate user feedback, suggestions and requests to maintain the vitality and contemporary status of the workflow. 
+
+\subsection{Supplementary Files}
+\hypertarget{chp2suppfile1}{}
+
+Supplementary File 1 is available online at the following \href{https://link.springer.com/article/10.1186/s12859-022-05125-8#Sec16}{link}
