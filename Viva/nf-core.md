@@ -244,13 +244,68 @@ Empirical findings you can name (each with the single-simulated-dataset caveat):
 - "Published in the early 2000s, so familiar" is not validation; both tools are known for high false-positive rates.
 - "Predicted interactions, so no precision or sensitivity" is a weak defence. A feasible sanity check would use a well-known positive control such as CDR1as with miR-7 (cited in the chapter as Hansen et al. 2013) to see whether the module recovers it. [VERIFY]
 
-**Still to answer (the first half of the question).** How strong is the evidence that circRNAs *generally* act as miRNA sponges, beyond well-known examples such as CDR1as and circCCDC66? Points to prepare:
+**Second half of the question: how strong is the evidence that circRNAs generally act as miRNA sponges?** "Strength of evidence" is not a single number. Judge it by type of evidence, then by generality and quantitative plausibility.
 
-- What the cited evidence shows (conserved MREs and specific examples) versus what it does not show (a general sponge function for most circRNAs). Some genome-wide analyses report that most circRNAs are not enriched for binding sites of any single miRNA. [CITE, VERIFY]
-- What this means for how much weight a user should give the module's output: it generates hypotheses for follow-up, not evidence of function.
+Evidence ladder, weakest to strongest:
+
+1. Computational prediction of binding sites (what the module does).
+2. Correlation between circRNA and miRNA or target expression.
+3. AGO2 RIP or CLIP showing the circRNA in the RISC complex.
+4. Reporter assays with the site mutated (shows a site is targetable).
+5. Gain or loss of the circRNA in cells or animals, with predicted target derepression.
+6. The same effect demonstrated at physiological abundance.
+
+Most reports that a miRNA "binds" a circRNA sit on steps 1 to 4.
+
+Generality and plausibility:
+
+- **Generality.** CDR1as/ciRS-7 (many miR-7 sites) and Sry (miR-138) are exceptions; genome-wide analyses are the better test of what is typical.
+- **Stoichiometry.** To sequester a miRNA meaningfully, a circRNA needs enough binding sites and enough abundance relative to the miRNA and its other targets. This is quantifiable (sites per circRNA, copy numbers).
+- **Negative results.** Negative results are under-published, so the absence of papers saying "circRNAs do not sponge miRNAs" is not evidence of absence. Look for genome-wide and quantitative critiques instead.
+
+Starting points to find and verify (not citations to trust as written):
+
+- Guo et al., Genome Biology 2014: recalled as reporting that most circRNAs lack enrichment for miRNA sites beyond a few exceptions. [VERIFY]
+- Kristensen et al., Nature Reviews Genetics 2019: a review recalled as concluding that only a minority of circRNAs show clear sponge function. [VERIFY]
+- Piwecka et al., Science 2017, and Kleaveland et al., Cell 2018: CDR1as knockout work recalled as showing the flagship case is more complex than simple sponging. [VERIFY]
+- Denzler et al. 2014, Molecular Cell: the chapter cites "Denzler2014Jun" for the ceRNA idea. If that is the quantitative study I recall, it questions the ceRNA hypothesis at physiological abundances. Check what the cited paper actually concludes. [VERIFY]
+
+Skeleton answer to adapt:
+
+> The evidence is strongest for a handful of cases, such as CDR1as and Sry, where multiple sites and functional experiments support sponging. For most circRNAs the evidence is much weaker: it is largely predicted sites, and genome-wide analyses suggest few circRNAs carry enough sites or sufficient abundance to titrate a miRNA effectively **[CITE]**. Quantitative work questions whether physiological circRNA levels can compete with other targets **[CITE]**. My module therefore generates hypotheses about *possible* miRNA response elements, and users should treat its output as candidates needing experimental support, such as AGO2 CLIP and mutational reporter assays, and prioritise circRNAs with many sites and high abundance.
+
+---
+
+## Q10. Strongest and weakest parts, and what you would do differently (INCOMPLETE)
+
+**Question.** What are the strongest and weakest parts of this chapter, and if you could redo one thing, what would it be?
+
+**Status.** Strongest parts answered in draft; weakest parts and "what I would do differently" still to be written.
+
+**Your answer so far (tidied).**
+
+> One of the strongest parts is that nf-core/circrna was built with Nextflow. Nextflow workflows run across a broad range of compute platforms, clusters and cloud environments, which opens the workflow up to labs regardless of their compute setup.
+>
+> Second, benchmarking the constituent quantification tools revealed a potential limitation in DCC: it produced many false positives, and sets that included it had lower precision and F1 scores. To our knowledge at the time of publication this had not been reported **[VERIFY, see below]**. We opened a GitHub issue with the DCC authors and shared the results before publication **[CITE: issue URL]**.
+>
+> Overall, the chapter contributes a best-practice, community-maintained workflow for circRNA analysis that is open to contributions from other users.
+
+**Flags on this draft.**
+
+- **Portability evidence.** The chapter's demonstration ran on a single local SLURM HPC cluster. Say what supports the broader claim (for example nf-core's shared configuration profiles and automated testing) and avoid implying you ran it on cloud platforms. [CLARIFY]
+- **"First to report DCC's false positives".** An examiner may know earlier benchmarks. Check existing circRNA tool comparisons (the chapter cites Zeng et al. 2017; also look for Hansen 2016 and others) before claiming novelty, or soften to "consistent with / extends earlier reports". [VERIFY]
+- **Wording of the DCC finding.** The chapter shows that sets containing DCC lowered precision and F1 on one simulated dataset, and attributes this to DCC's use of STAR 2-pass mode. Clarify whether DCC was run with default settings and what filtering was applied. [CLARIFY]
+- **"Gold standard".** This overclaims; the chapter does not validate the workflow against an external reference. Use "best-practice" or "community-maintained".
+- **"Open to contributions".** Support it with evidence if you have it (contributors, issues, releases). [CITE]
+
+**TODO (fill in later).**
+
+- Weakest parts of the chapter. Candidates from our discussion: single simulated dataset; unclear background set and match rule; no evaluation of the miRNA, annotation and differential expression components; 200 bp default chosen without evaluation; no ground truth for the extra *C. elegans* circRNAs.
+- What you would do differently (one concrete change, with a reason).
+- Envisioned users and long-term impact (bank question: "Who are your envisioned users?").
 
 ---
 
 ## Where we stopped
 
-Q9 is partly answered: the module description is done; the evidence for a general sponge function is still open. Remaining bank questions worth preparing for this chapter: "What are the weakest and strongest parts of your work?", "What would you do differently?", and "Who are your envisioned users?".
+Q9 is answered in outline; the citations still need verifying. Q10 is partly drafted (strongest parts only). Remaining to prepare: the weakest parts and what you would do differently, and envisioned users.
