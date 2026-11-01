@@ -1,0 +1,1238 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viva presentation | Computational approaches to the analysis of circular RNAs</title>
+<!--
+  Chapter numbers follow the headings printed in the thesis; folder names differ:
+    Introduction/ = Ch1 | Chapter1/ = Ch2 (review) | Chapter2/ = Ch3 (nf-core/circrna)
+    Chapter4/ = Ch4 (pycircdb) | Chapter3/ = Ch5 (ceRNA signature) | Discussion/ = Ch6
+  Figures are read from the thesis folders, so keep this file in thesis/presentation/.
+  Each slide's data-min is its planned duration; the values sum to 40 minutes (supplementary slides are 0).
+-->
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+
+<div id="viewport">
+<div id="stage">
+
+<!-- ============================ INTRODUCTION (4 min) ============================ -->
+
+<section class="slide title" data-sec="intro" data-min="0.5" data-title="Title">
+  <img class="logo" src="../University_of_Galway_logo_2022.png" alt="University of Galway">
+  <div>
+    <p class="kicker">Doctor of Philosophy in Genomics Data Science &middot; Viva voce examination</p>
+    <h1>Computational approaches to the analysis of circular RNAs: bioinformatic tool development and applications in understanding drug-resistant prostate cancer</h1>
+  </div>
+  <div class="by">
+    <strong>Barry Digby</strong>
+    Supervisor: Dr Pilib &Oacute; Broin &middot; Co-supervisor: Prof. Stephen P. Finn<br>
+    School of Mathematical and Statistical Sciences and Institute for Health Discovery and Innovation, University of Galway
+  </div>
+  <aside class="notes"><p>Plan: 40 minutes. Background (4), Chapter 2 review (5), Chapter 3 nf-core/circrna (9), Chapter 4 pycircdb (7), Chapter 5 ceRNA signature (11), discussion (4). Supplementary slides follow slide 44 for likely questions.</p></aside>
+</section>
+
+<section class="slide" data-sec="intro" data-min="1" data-title="Prostate cancer and androgen receptor signalling">
+  <p class="kicker">Introduction &middot; Chapter 1</p>
+  <h1>Androgen receptor signalling and resistance to androgen-targeted therapy in prostate cancer</h1>
+  <div class="body c2" style="grid-template-columns:1.1fr .9fr">
+    <div class="col">
+      <ul class="t sm">
+        <li>Prostate cancer (PCa) is the second most frequently diagnosed cancer in men; disease growth is driven by androgen receptor (AR) signalling.</li>
+        <li>Androgen deprivation therapy (ADT) and second-generation antiandrogens (enzalutamide, abiraterone) are standard for advanced disease.</li>
+        <li>Approximately 35% of men experience biochemical recurrence (BCR) after primary treatment (PSA &gt; 0.2 ng/mL, confirmed).</li>
+        <li>Enzalutamide improves overall survival (4.8 months), but 20&ndash;40% of patients are intrinsically resistant and all acquire resistance.</li>
+        <li>Resistance mechanisms include <em>AR</em> amplification, ligand-binding domain mutations (T877A, H874Y, F876L) and splice variants lacking the ligand-binding domain (AR-V7).</li>
+      </ul>
+    </div>
+    <figure style="--fh:300px">
+      <img src="../Introduction/Figures/AR_mutations.png" alt="Genetic alterations in localised, mCSPC and mCRPC prostate cancer">
+      <figcaption>Thesis Figure 1.4. Genetic alterations in localised, metastatic castration-sensitive (mCSPC) and castration-resistant (mCRPC) disease. Reproduced from Rebello et al., 2021 with permission.</figcaption>
+    </figure>
+  </div>
+  <p class="refs">Sung et al., 2021; Rans et al., 2022; Amling et al., 2001; Scher et al., 2012; Cornford et al., 2017; Azad et al., 2015; Hu et al., 2009; Rebello et al., 2021.</p>
+  <aside class="notes"><p>~1 min. Establish the clinical problem: disease progression after androgen-targeted therapy and the need for prognostic markers of recurrence. Keep to the headline mechanisms; Chapter 1 covers these in detail.</p></aside>
+</section>
+
+<section class="slide" data-sec="intro" data-min="0.75" data-title="Established prognostic biomarkers">
+  <p class="kicker">Introduction &middot; Chapter 1</p>
+  <h1>Established molecular prognostic assays are predominantly mRNA-based</h1>
+  <div class="body stack">
+    <table class="tbl">
+      <tr><th>Assay</th><th>Analytes</th><th>Reported performance</th></tr>
+      <tr><td>PHI</td><td>Total PSA, %free PSA, [&minus;2]proPSA</td><td>AUC 0.74, versus 0.56 for total PSA (Stephan et al., 2013)</td></tr>
+      <tr><td>SelectMDx</td><td><em>DLX1</em>, <em>HOXC6</em> mRNA with clinical risk factors</td><td>Reduces overdiagnosis and overtreatment at PSA &gt; 3 ng/mL (Dijkstra et al., 2017)</td></tr>
+      <tr><td>Oncotype DX GPS</td><td>12 cancer-related and 5 reference genes</td><td>Score 0&ndash;100; prognostic for adverse pathology (Klein et al., 2014)</td></tr>
+      <tr><td>Prolaris</td><td>31 cell-cycle progression genes</td><td>HR 1.77 per unit for BCR (95% CI 1.40&ndash;2.22; Cuzick et al., 2011)</td></tr>
+      <tr><td>Decipher</td><td>22 genes</td><td>AUC 0.78 (BCR) and 0.80 (metastasis) in 139 patients after radical prostatectomy (Den et al., 2014)</td></tr>
+    </table>
+    <p class="t">Genomic classifiers are sensitive to tumour sampling and focus heterogeneity (ISUP; Lotan et al., 2020), motivating further biomarker classes, including non-coding RNAs.</p>
+  </div>
+  <p class="refs">Stephan et al., 2013; Dijkstra et al., 2017; Klein et al., 2014; Cuzick et al., 2011; Den et al., 2014; Lotan et al., 2020.</p>
+  <aside class="notes"><p>~0.75 min. Purpose of this slide is to justify looking beyond mRNA panels, not to review each assay.</p></aside>
+</section>
+
+<section class="slide" data-sec="intro" data-min="1" data-title="circRNAs and the ceRNA network">
+  <p class="kicker">Introduction &middot; Chapters 1&ndash;2</p>
+  <h1>Circular RNAs as candidate biomarkers and regulators within the competing endogenous RNA network</h1>
+  <div class="body c2" style="grid-template-columns:1fr 1fr">
+    <div class="col">
+      <ul class="t sm">
+        <li>circRNAs arise by back-splicing and form covalently closed loops that resist exonucleolytic degradation (half-life approximately 2.5-fold that of linear RNAs) and are detectable in biofluids and exosomes.</li>
+        <li>Mature circRNAs carry conserved miRNA response elements and can sequester miRNAs, relieving repression of target mRNAs (ceRNA hypothesis).</li>
+        <li>Several circRNAs are dysregulated in PCa, including hsa_circ_0001275 in enzalutamide-resistant LNCaP clones.</li>
+        <li>Few predictive models use circRNA expression in PCa: adequately powered total RNA-seq cohorts are scarce, circRNAs are lowly expressed and counts are zero-inflated, and no reference quantification workflow exists.</li>
+      </ul>
+    </div>
+    <figure style="--fh:300px">
+      <img src="../Chapter1/Figures/Figure1.png" alt="Mechanisms of circRNA biogenesis">
+      <figcaption>Thesis Figure 2.1. Biogenesis of circRNAs: (A) RNA-binding protein-mediated, (B) reverse-complementary sequence-mediated, (C) lariat-driven and (D) intron-lariat circularisation.</figcaption>
+    </figure>
+  </div>
+  <p class="refs">Salzman et al., 2012; Hansen et al., 2013; Li et al., 2015; Thomas et al., 2014; Salmena et al., 2011; Lim et al., 2021; Digby et al., 2024.</p>
+  <aside class="notes"><p>~1 min. Link the biology to the computational problem: low abundance and back-splice junction (BSJ)-based detection make quantification error-prone, which limits downstream modelling.</p></aside>
+</section>
+
+<section class="slide" data-sec="intro" data-min="0.75" data-title="Aims and thesis structure">
+  <p class="kicker">Introduction &middot; Chapter 1</p>
+  <h1>Aims and structure of the thesis</h1>
+  <div class="body c2" style="grid-template-columns:1fr 1.05fr">
+    <div class="col">
+      <h3>Research questions</h3>
+      <ol class="t sm" style="padding-left:24px;margin:0">
+        <li>Can existing workflows reliably detect, quantify and annotate circRNAs from short-read sequencing data?</li>
+        <li>Which tools are required to address the limitations identified?</li>
+        <li>Do circRNAs, acting within the ceRNA network, contribute to biochemical recurrence in prostate cancer, and can this signal be used to derive a prognostic gene set?</li>
+      </ol>
+    </div>
+    <div class="col">
+      <table class="tbl sm">
+        <tr><th>Chapter</th><th>Content</th><th>Status</th></tr>
+        <tr><td class="n">2</td><td>Review of computational approaches and challenges in circRNA analysis</td><td><em>BMC Genomics</em> 2024</td></tr>
+        <tr><td class="n">3</td><td>nf-core/circrna: quantification, miRNA target prediction and differential expression</td><td><em>BMC Bioinformatics</em> 2023</td></tr>
+        <tr><td class="n">4</td><td>pycircdb: integrated database annotation</td><td><em>Bioinformatics Advances</em>, accepted 2026</td></tr>
+        <tr><td class="n">5</td><td>ceRNA network-derived prognostic signature for biochemical recurrence</td><td><em>Scientific Reports</em>, under review 2026</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="refs">Digby, Finn and &Oacute; Broin, 2023, 2024, 2026 (accepted), 2026 (under review).</p>
+  <aside class="notes"><p>~0.75 min. State the three questions explicitly; each later chapter maps to one of them. Chapter 6 is the discussion.</p></aside>
+</section>
+
+<!-- ============================ CHAPTER 2 (5 min) ============================ -->
+
+<section class="slide" data-sec="review" data-min="0.75" data-title="Library preparation and artefacts">
+  <p class="kicker">Chapter 2 &middot; Review of computational approaches</p>
+  <h1>Library preparation and technical artefacts shape circRNA detection</h1>
+  <div class="body c2" style="grid-template-columns:.8fr 1.2fr">
+    <figure style="--fh:455px">
+      <img src="../Chapter1/Figures/Figure2.png" alt="Library preparation, alignment and validation strategies for circRNA detection">
+      <figcaption>Thesis Figure 2.2. Library preparation (increasing circRNA sensitivity), alignment strategies and validation.</figcaption>
+    </figure>
+    <div class="col">
+      <ul class="t sm">
+        <li>circRNAs represent approximately 1% of the transcriptome relative to poly(A) RNA. Poly(A) selection removes them; rRNA depletion retains them; RNase R enriches them.</li>
+        <li>RPAD (RNase R, polyadenylation, poly(A)<sup>+</sup> depletion) yielded the most circRNAs and the highest sensitivity in a benchmark.</li>
+        <li>Artefacts generating false back-splice junctions include reverse-transcriptase template switching (35&ndash;55% of computationally detected isoforms for a gene), adapter-ligation chimeras and base-calling errors near splice sites.</li>
+        <li>Because circRNA abundance is low, read-depth filters do not remove artefacts; paired-end evidence is required, with the mate mapping within the same transcript.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2024; Salzman et al., 2013; Shi et al., 2022; Panda et al., 2017; Roy et al., 2015; Salzman et al., 2014.</p>
+  <aside class="notes"><p>~0.75 min. Emphasise that the choice of library preparation constrains what any computational method can recover, and that artefacts are not controlled by simple count thresholds.</p></aside>
+</section>
+
+<section class="slide" data-sec="review" data-min="0.75" data-title="BSJ-based identification strategies">
+  <p class="kicker">Chapter 2 &middot; Review of computational approaches</p>
+  <h1>Back-splice junction detection: segmented-read and pseudo-reference strategies</h1>
+  <div class="body stack">
+    <table class="tbl">
+      <tr><th style="width:17%"></th><th>Segmented-read</th><th>Pseudo-reference</th></tr>
+      <tr><td><b>Principle</b></td><td>Reads that do not align contiguously are split into anchors (e.g. 20 nt) and re-mapped; reverse-orientation anchors define the junction.</td><td>Reads are mapped to a database of candidate junctions, built from annotated exon&ndash;exon combinations or from tandemly duplicated candidates.</td></tr>
+      <tr><td><b>Examples</b></td><td>find_circ, UROBORUS</td><td>KNIFE, PTESfinder, CIRIquant, Sailfish-cir</td></tr>
+      <tr><td><b>Strengths</b></td><td><em>De novo</em> discovery; suitable for incompletely annotated genomes</td><td>Fewer false positives; higher validation rates reported (Vromman et al., 2023)</td></tr>
+      <tr><td><b>Limitations</b></td><td>Lower sensitivity; relies on post hoc filters (flanking GU/AG, mismatches, mate position)</td><td>Annotation-constrained; the first variant detects only circRNAs sharing splice sites with linear transcripts</td></tr>
+    </table>
+    <p class="t sm">Aligner-integrated chimeric detection (STAR or BWA output parsed by CIRCexplorer2, circRNA_finder, DCC and CIRI2) and splice-aware aligners (Segemehl, MapSplice) blend both approaches.</p>
+  </div>
+  <p class="refs">Digby et al., 2024; Memczak et al., 2013; Salzman et al., 2012; Jeck et al., 2014; Vromman et al., 2023.</p>
+  <aside class="notes"><p>~0.75 min. This classification underlies the tool selection in Chapter 3: the seven tools span both strategies and four aligners.</p></aside>
+</section>
+
+<section class="slide" data-sec="review" data-min="1" data-title="Discordance among detection tools">
+  <p class="kicker">Chapter 2 &middot; Review of computational approaches</p>
+  <h1>Benchmarking studies report substantial discordance among circRNA identification tools</h1>
+  <div class="body stack">
+    <table class="tbl">
+      <tr><th>Study</th><th>Tools</th><th>Data</th><th>Principal findings</th></tr>
+      <tr><td>Hansen et al., 2016</td><td class="n">5</td><td>RNase R<sup>&plusmn;</sup> libraries</td><td>854 of 5,071 circRNAs called by all tools; false-positive rate of the combined set 6.56%</td></tr>
+      <tr><td>Zeng et al., 2017</td><td class="n">11</td><td>Simulated (14,689 HeLa circRNAs); RNase R</td><td>Precision &gt; 94% for most tools; sensitivity 52&ndash;93%; F1 &ge; 0.9 for KNIFE, CIRI, PTESfinder and Segemehl only</td></tr>
+      <tr><td>Gaffo et al., 2022</td><td class="n">7</td><td>Simulated (5,680 circRNAs); RNase R</td><td>&ge; 2 methods: precision 0.99, sensitivity 0.98; outperformed each constituent method</td></tr>
+      <tr><td>Vromman et al., 2023</td><td class="n">16</td><td>Three cancer cell lines; orthogonal validation</td><td>Validation 97.6% (RT-qPCR), 93.9% (RNase R), 86% (amplicon sequencing); 86% of circRNAs had &le; 5 BSJ reads</td></tr>
+    </table>
+    <p class="t sm">High BSJ read counts were not a reliable proxy for authenticity (Zeng et al., 2017); differences between tools reflect algorithm-specific blind spots.</p>
+  </div>
+  <p class="refs">Hansen et al., 2016; Zeng et al., 2017; Gaffo et al., 2022; Vromman et al., 2023; summarised in Digby et al., 2024.</p>
+  <aside class="notes"><p>~1 min. Key message for Chapter 3: individual tools have high precision but variable sensitivity, and consensus across tools is the consistent recommendation. Gaffo and Vromman both support requiring support from at least two tools.</p></aside>
+</section>
+
+<section class="slide" data-sec="review" data-min="1" data-title="Integration approaches and full-length reconstruction">
+  <p class="kicker">Chapter 2 &middot; Review of computational approaches</p>
+  <h1>Integration-based identification and resolution of circRNA internal structure</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>Consensus across tools</h3>
+      <ul class="t sm">
+        <li>Combine tools that use different aligners to avoid shared biases (Hansen et al., 2018).</li>
+        <li>CirComPara2 default: seven methods, circRNAs called by &ge; 2.</li>
+        <li>Pseudo-reference plus segmented-read tools increased detected circRNAs by a median of 61.1%, versus 35.4% for tools sharing a strategy; differing splice-site settings gave 76.2% versus 32.6% (Vromman et al., 2023).</li>
+        <li>Consensus is not sufficient: 9.9% of circRNAs called by &ge; 2 tools failed at least one validation method.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Internal structure</h3>
+      <ul class="t sm">
+        <li>BSJ reads do not resolve internal exon composition; CIRI-AS, CIRI-full and FUCHS reconstruct isoforms from paired-end coverage.</li>
+        <li>Long-read methods (isoCirc, CIRI-long, circFL-seq) sequence full-length circRNAs following rolling-circle amplification or reverse transcription.</li>
+        <li>isoCirc was the most sensitive (79,312 vs 34,046 known BSJ sites for circFL-seq in deep libraries); circFL-seq exceeded CIRI-long in HEK293 cells (27,869 vs 15,242).</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Hansen et al., 2018; Gaffo et al., 2022; Vromman et al., 2023; Xin et al., 2021 (isoCirc); Zhang et al., 2021 (CIRI-long); Liu et al., 2021 (circFL-seq); as reviewed in Digby et al., 2024.</p>
+  <aside class="notes"><p>~1 min. Two points: (1) consensus is the accepted mitigation but imperfect; (2) BSJ-only methods leave the internal structure, and therefore the miRNA response element content, assumed rather than observed. The second point returns as a limitation in the discussion.</p></aside>
+</section>
+
+<section class="slide" data-sec="review" data-min="0.75" data-title="ceRNA network construction and databases">
+  <p class="kicker">Chapter 2 &middot; Review of computational approaches</p>
+  <h1>Functional annotation: ceRNA network construction and circRNA databases</h1>
+  <div class="body c2" style="grid-template-columns:1.05fr .95fr">
+    <figure style="--fh:300px">
+      <img src="../Chapter1/Figures/Figure3.png" alt="Cytoscape visualisation of a circRNA-miRNA-mRNA network">
+      <figcaption>Thesis Figure 2.3. ceRNA network filtered to subgraphs in which circRNA and mRNA change in the same direction and the intervening miRNA in the opposite direction.</figcaption>
+    </figure>
+    <div class="col">
+      <ul class="t sm">
+        <li>circRNA&ndash;miRNA pairs are obtained from databases or predicted from the mature spliced sequence (miRanda, TargetScan); miRNA&ndash;mRNA pairs from miRTarBase, miRNet and TargetScan.</li>
+        <li>False-positive control: remove 6-mer sites, intersect algorithms, overlap with AGO2 binding sites, and enforce the expected direction of expression change.</li>
+        <li>Twenty-four circRNA databases were catalogued; they differ in pipeline, genome assembly, coordinate convention and identifier scheme, and several were inaccessible.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2024; Chen et al., 2023; Salmena et al., 2011.</p>
+  <aside class="notes"><p>~0.75 min. The expression-direction filter is the procedure used in Chapter 5. The database heterogeneity is the starting point for Chapter 4.</p></aside>
+</section>
+
+<section class="slide" data-sec="review" data-min="0.75" data-title="Limitations identified and where they are addressed">
+  <p class="kicker">Chapter 2 &middot; Review of computational approaches</p>
+  <h1>Limitations identified in the review and their treatment in this thesis</h1>
+  <div class="body stack">
+    <table class="tbl">
+      <tr><th>Limitation</th><th style="width:32%">Evidence</th><th style="width:16%">Addressed in</th></tr>
+      <tr><td>High variance between tools; consensus requires manual integration</td><td>Hansen 2016; Zeng 2017; Vromman 2023</td><td>Chapter 3</td></tr>
+      <tr><td>No workflow combining quantification, miRNA target prediction and differential expression</td><td>Thesis Table 3.1</td><td>Chapter 3</td></tr>
+      <tr><td>Inconsistent identifiers, coordinates and assemblies; limited programmatic access to databases</td><td>Chen 2023; database survey</td><td>Chapter 4</td></tr>
+      <tr><td>Few circRNA-informed prognostic models; limited transparency in validation reporting</td><td>Chapter 1; Dhiman 2021</td><td>Chapter 5</td></tr>
+      <tr><td>BSJ-only methods do not resolve internal structure; no gold-standard circRNA set</td><td>Review conclusions</td><td>Not addressed (Discussion)</td></tr>
+    </table>
+  </div>
+  <p class="refs">Digby et al., 2024.</p>
+  <aside class="notes"><p>~0.75 min. Transition slide. Be explicit that the last row is outside the scope of the thesis and returns in the future directions.</p></aside>
+</section>
+
+<!-- ============================ CHAPTER 3 (9 min) ============================ -->
+
+<section class="slide" data-sec="nfcore" data-min="0.75" data-title="Rationale and comparison with existing workflows">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>Existing circRNA workflows address subsets of the analytical process</h1>
+  <div class="body c2" style="grid-template-columns:1.25fr .75fr">
+    <table class="tbl sm">
+      <tr><th>Workflow</th><th class="c">Year</th><th class="c">Quantification</th><th class="c">miRNA prediction</th><th class="c">Differential expression</th></tr>
+      <tr><td>CirComPara</td><td class="c">2017</td><td class="c">&#10003;</td><td class="c">&#10007;</td><td class="c">linear RNA</td></tr>
+      <tr><td>CirComPara2</td><td class="c">2021</td><td class="c">&#10003;</td><td class="c">&#10007;</td><td class="c">&#10007;</td></tr>
+      <tr><td>circtools</td><td class="c">2019</td><td class="c">&#10003;</td><td class="c">&#10007;</td><td class="c">&#10003;</td></tr>
+      <tr><td>circRNAwrap</td><td class="c">2019</td><td class="c">&#10003;</td><td class="c">&#10007;</td><td class="c">&#10003;</td></tr>
+      <tr><td>circRNAprofiler</td><td class="c">2020</td><td class="c">&#10007;</td><td class="c">&#10003;</td><td class="c">&#10003;</td></tr>
+      <tr><td>circMeta</td><td class="c">2020</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10003;</td></tr>
+      <tr><td>DEBKS</td><td class="c">2021</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10003;</td></tr>
+      <tr><td>FcircSEC</td><td class="c">2020</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10007;</td></tr>
+      <tr><td>Ularcirc</td><td class="c">2019</td><td class="c">&#10007;</td><td class="c">&#10003;</td><td class="c">&#10007;</td></tr>
+      <tr class="hl"><td>nf-core/circrna</td><td class="c">2023</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10003;</td></tr>
+    </table>
+    <div class="col">
+      <h3>Aim</h3>
+      <p class="t sm">To provide a single, portable workflow performing circRNA quantification, miRNA target prediction and differential expression analysis from raw sequencing reads.</p>
+      <p class="t sm muted">Most existing workflows are downstream toolkits requiring user-supplied quantification, or quantification workflows without downstream analysis.</p>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023 (BMC Bioinformatics), Table 1; thesis Table 3.1.</p>
+  <aside class="notes"><p>~0.75 min. Bound the claim to the nine workflows surveyed at the time of publication; do not state that no other tool exists. Integration is only part of the contribution: the consensus parameters, the annotation script and the simulation-based guidance are the others.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="0.75" data-title="Workflow architecture">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>Workflow architecture: three analysis modules implemented in Nextflow DSL2</h1>
+  <div class="body stack">
+    <figure style="--fh:290px">
+      <img src="../Chapter2/Figures/figure1.png" alt="Schematic of nf-core/circrna modules">
+      <figcaption>Thesis Figure 3.1. Schematic overview of the nf-core/circrna analysis modules.</figcaption>
+    </figure>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+      <div><h3>Input</h3><p class="t sm" style="font-size:17px">Paired-end FASTQ, or BAM reverted to FASTQ. FastQC summaries; optional adapter removal with BBDUK. iGenomes references for 18 species, or user-supplied FASTA/GTF.</p></div>
+      <div><h3>Implementation</h3><p class="t sm" style="font-size:17px">Modular processes executed in containers with pinned software versions. Developed to nf-core guidelines: continuous integration testing, documentation and community review.</p></div>
+      <div><h3>Deployment</h3><p class="t sm" style="font-size:17px">Configuration profiles for local, HPC and cloud execution. Requirements: Java &ge; 8, Nextflow and a container client (Docker or Apptainer).</p></div>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023; Di Tommaso et al., 2017; Ewels et al., 2020.</p>
+  <aside class="notes"><p>~0.75 min. The circRNA discovery module is mandatory; miRNA prediction and differential expression are optional. Three dependencies (Java, Nextflow, container client), not two.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="1" data-title="circRNA discovery module">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>circRNA discovery: multi-tool quantification, consensus filtering and annotation</h1>
+  <div class="body c2" style="grid-template-columns:.9fr 1.1fr">
+    <div class="col">
+      <table class="tbl sm">
+        <tr><th>Tool</th><th>Detection basis</th></tr>
+        <tr><td>CIRCexplorer2, circRNA_finder, DCC</td><td>STAR chimeric alignments</td></tr>
+        <tr><td>CIRIquant</td><td>BWA, CIRI2; pseudo-reference quantification</td></tr>
+        <tr><td>find_circ</td><td>Bowtie2 anchor re-mapping</td></tr>
+        <tr><td>MapSplice, Segemehl</td><td>Splice-aware alignment</td></tr>
+      </table>
+      <p class="t sm" style="margin-top:12px">Annotation script (reference-guided): exonic circRNA, exon&ndash;intron circRNA (one boundary &gt; 200 bp from an exon), intronic ciRNA, or intergenic. Outputs: extended BED12, mature spliced FASTA, count matrix.</p>
+    </div>
+    <table class="tbl sm">
+      <tr><th>Parameter</th><th>Function</th></tr>
+      <tr><td><code>--tool</code></td><td>Select one or more quantification tools</td></tr>
+      <tr><td><code>--tool_filter n</code></td><td>Retain circRNAs called by &ge; <em>n</em> tools</td></tr>
+      <tr><td><code>--bsj_filter</code></td><td>Minimum BSJ reads per tool</td></tr>
+      <tr><td><code>--duplicates_fun</code></td><td>Aggregate counts across tools (maximum or mean)</td></tr>
+      <tr><td><code>--exon_boundary</code></td><td>Tolerance for exon-boundary matching (default 200 bp)</td></tr>
+    </table>
+  </div>
+  <p class="refs">Digby et al., 2023.</p>
+  <aside class="notes"><p>~1 min. Check before the viva: the chapter assigns STAR 2-pass mode to CIRCexplorer2 in the methods but attributes it only to DCC in the parameter analysis; be ready to state which is correct. The 200 bp threshold is a pragmatic default exposed as a parameter; it was not empirically optimised.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="0.75" data-title="miRNA prediction and differential expression modules">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>miRNA target prediction and differential expression modules</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>miRNA target prediction</h3>
+      <ul class="t sm">
+        <li>miRNA response elements are identified in the mature spliced sequence, including the BSJ, using miRanda and TargetScan.</li>
+        <li>A miRNA is retained only if predicted by both algorithms.</li>
+        <li>Output per sample: circRNA&ndash;miRNA edges with miRanda score, minimum free energy and site type (6mer, 7mer-m8, 7mer-A1, 8mer).</li>
+        <li>Suggested post hoc filter: exclude 6mers and sites with free energy &ge; &minus;20 kcal/mol.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Differential expression</h3>
+      <ul class="t sm">
+        <li>Linear RNAs are quantified (HISAT2, StringTie) to obtain host-gene expression and library size factors for normalisation.</li>
+        <li>DESeq2 for all contrasts of a condition column, adjusting for covariates; PCA and hierarchical clustering for quality control.</li>
+        <li>CircTest (beta-binomial model) tests circRNA relative to host-gene expression.</li>
+        <li>Not suitable for libraries from which linear RNAs have been removed.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023; Enright et al., 2003 (miRanda); Agarwal et al., 2015 (TargetScan); Love et al., 2014; Cheng et al., 2016 (CircTest).</p>
+  <aside class="notes"><p>~0.75 min. These modules wrap established methods; the contribution is integration and automation. Neither module is independently benchmarked in the chapter (see limitations slide). Using host-gene size factors to normalise sparse circRNA counts avoids unstable size-factor estimation from circRNA counts alone.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="1" data-title="Demonstration: PRJNA742881">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>Demonstration: re-analysis of a published <em>C. elegans</em> total RNA-seq dataset (PRJNA742881)</h1>
+  <div class="body c2" style="grid-template-columns:1.15fr .85fr">
+    <figure style="--fh:395px">
+      <img src="../Chapter2/Figures/figure2.png" alt="Comparison of filtered circRNAs with the original study">
+      <figcaption>Thesis Figure 3.2. (A) circRNAs called per tool; (B) overlap with the original study; (C) genomic distribution of shared and additional circRNAs.</figcaption>
+    </figure>
+    <div class="col">
+      <ul class="t sm">
+        <li>Six samples (N2 and <em>fust-1</em> mutant, n = 3 each; 70&ndash;93 million reads per sample), WBcel235.</li>
+        <li>CIRCexplorer2, CIRIquant, find_circ and MapSplice (F1 &gt; 91% in simulation); &ge; 15 BSJ reads (CIRIquant), as in the original study.</li>
+        <li>4,435 circRNAs shared with the original study, 2,420 additional, 521 unique to the original.</li>
+        <li>The additional circRNAs are candidates for experimental follow-up; no ground truth is available.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023; Cao et al., 2021 (original study).</p>
+  <aside class="notes"><p>~1 min. CIRI2 was omitted because CIRIquant wraps it; DCC was omitted because it failed at 120 GB RAM on this high-coverage RPAD dataset and had the lowest precision in simulation. Anticipated question: how do you know the 2,420 are real? Answer: this is not claimed; read support does not establish circularity, and RT-PCR, RNase R resistance and junction sequencing would be needed.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="0.75" data-title="Workflow outputs and computational cost">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>Workflow outputs and computational cost on the demonstration dataset</h1>
+  <div class="body c2" style="grid-template-columns:1.2fr .8fr">
+    <figure style="--fh:380px">
+      <img src="../Chapter2/Figures/figure3.png" alt="Differential expression outputs: heatmap, PCA and volcano plot">
+      <figcaption>Thesis Figure 3.3. (A) Heatmap of differentially expressed circRNAs, (B) PCA biplot, (C) volcano plot.</figcaption>
+    </figure>
+    <div class="col">
+      <table class="tbl sm">
+        <tr><th>Resource</th><th class="n">Value</th></tr>
+        <tr><td>Wall-clock time</td><td class="n">18 h 21 min</td></tr>
+        <tr><td>CPU hours</td><td class="n">1,566</td></tr>
+        <tr><td>Allocation (SLURM)</td><td class="n">8 CPUs, 60 GB</td></tr>
+        <tr><td>Peak process memory</td><td class="n">~38 GB</td></tr>
+      </table>
+      <p class="t sm muted" style="margin-top:12px">Memory peaks were the find_circ and CIRIquant alignment steps; all other processes used &lt; 10 GB. Per-process detail is in the supplementary slides.</p>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023; thesis Table 3.2 and Figure 3.4.</p>
+  <aside class="notes"><p>~0.75 min. Figure 3.3 illustrates the outputs; it is not a validation of the differential expression module. The 38 GB figure is a per-process peak on this dataset; Table 3.3 (simulation) reports whole-tool memory on a different dataset, so the two are not directly comparable.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="0.75" data-title="Simulation design and metrics">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>Evaluation of quantification tools: simulation design and performance metrics</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>Simulated dataset</h3>
+      <ul class="t sm">
+        <li>CIRIsimulator (modified; Zeng et al., 2017) accepting circBase-format coordinates.</li>
+        <li>7,445 glioblastoma circRNAs from circRNADb; 7,267 simulated.</li>
+        <li>1,450,328 paired-end reads, 101 bp, insert size 350 bp.</li>
+        <li>Each call required &ge; 2 BSJ reads. Calls not among the 7,267 simulated circRNAs were counted as false positives.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Metrics</h3>
+      <p class="eq">Precision = TP / (TP + FP)<br>Sensitivity = TP / (TP + FN)<br>F1 = 2 &middot; Precision &middot; Sensitivity / (Precision + Sensitivity)</p>
+      <p class="t sm muted">There are no true negatives: quantification returns a set of circRNAs from reads and no universe of negatives is defined, so specificity and ROC-based measures are not applicable.</p>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023; Zeng et al., 2017; Chen et al., 2016 (circRNADb).</p>
+  <aside class="notes"><p>~0.75 min. Worked example in the supplementary slides (CIRCexplorer2: 6,259 true positives of 6,270 calls; 7,267 simulated). Check before the viva: what exactly defined a match (exact BSJ coordinates, overlap, strand) and how the background reads were generated. 178 of 7,445 circRNAs were not simulated; know why.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="1" data-title="Tool performance and consensus">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>Performance of individual tools and of consensus calling on simulated data</h1>
+  <div class="body c2" style="grid-template-columns:1.7fr 1fr">
+    <div class="col" id="chart-tools"></div>
+    <ul class="t sm">
+      <li>CIRCexplorer2, CIRIquant, find_circ and MapSplice: F1 &gt; 91%.</li>
+      <li>DCC returned the most calls (8,397) with the lowest precision (75.55%).</li>
+      <li>Segemehl was conservative (sensitivity 62.72%).</li>
+      <li>Calls shared by &ge; 2 tools: precision 99.83%, sensitivity 96.12%, F1 97.94%.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2023; thesis Table 3.3.</p>
+  <aside class="notes"><p>~1 min. Use the toggle to show that precision is uniformly high except for DCC, whereas sensitivity separates the tools and is where consensus gains. Limitations: one simulated human glioblastoma dataset; truth set derived from computational predictions in circRNADb; RT artefacts and RNase R bias are not simulated; the strict match rule makes absolute precision conservative.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="1.25" data-title="Combinatorial analysis and default parameters">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>Combinatorial analysis of tool sets and selection of default parameters</h1>
+  <div class="body c2" style="grid-template-columns:1.15fr .85fr">
+    <figure style="--fh:440px">
+      <img src="../Chapter2/Figures/figure6.png" alt="Performance of tool combinations as a function of the number of tools and tool_filter">
+      <figcaption>Thesis Figure 3.6. (A) Precision, sensitivity and F1 against the number of tools and <code>--tool_filter</code>; (B) sets with versus without DCC; (C) PCA of the sets.</figcaption>
+    </figure>
+    <div class="col">
+      <table class="tbl xs">
+        <tr><th>Top combinations (filter 2)</th><th class="n">P</th><th class="n">S</th><th class="n">F1</th></tr>
+        <tr><td>CIRCexplorer2, CIRIquant, Segemehl</td><td class="n">98.47</td><td class="n">97.21</td><td class="n">97.83</td></tr>
+        <tr><td>CIRIquant, MapSplice, Segemehl</td><td class="n">98.55</td><td class="n">96.99</td><td class="n">97.76</td></tr>
+        <tr><td>CIRCexplorer2, CIRIquant, find_circ</td><td class="n">99.59</td><td class="n">95.89</td><td class="n">97.70</td></tr>
+        <tr><td>CIRCexplorer2, CIRIquant, MapSplice</td><td class="n">99.74</td><td class="n">95.54</td><td class="n">97.60</td></tr>
+        <tr><td>CIRIquant, find_circ, MapSplice</td><td class="n">99.70</td><td class="n">95.57</td><td class="n">97.59</td></tr>
+      </table>
+      <ul class="t sm" style="margin-top:12px">
+        <li>F1 inflects at three tools with <code>--tool_filter 2</code>; further tools add cost with minimal gain, and stricter filtering reduces sensitivity.</li>
+        <li>Sets containing DCC had significantly lower precision and F1 (<em>P</em> &lt; 2 &times; 10<sup>&minus;16</sup>); sensitivity did not differ significantly (<em>P</em> = 0.052).</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023; thesis Figure 3.6 and Table 3.4.</p>
+  <aside class="notes"><p>~1.25 min. The thesis writes the number of sets as nCk with n = 6 giving 126; that formula is the permutation formula and 126 equals the sum of C(7,k) for k = 1 to 6. Check what was run (seven tools, set sizes 1 to 6) and be ready to correct the text. Differences among the top combinations are small (F1 97.35&ndash;97.83%, top ten), so no single set should be presented as uniquely optimal.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="1" data-title="Summary and limitations">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna</p>
+  <h1>Chapter 3: summary and limitations</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>Findings</h3>
+      <ul class="t sm">
+        <li>A single workflow performs quantification (up to seven tools), miRNA target prediction and differential expression analysis.</li>
+        <li>On simulated data, calls shared by &ge; 2 tools reached 99.83% precision and 96.12% sensitivity.</li>
+        <li>Three tools with <code>--tool_filter 2</code> approximate the optimum; DCC degrades performance.</li>
+        <li>The demonstration recovered 4,435 published circRNAs in a single execution.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Limitations</h3>
+      <ul class="t sm">
+        <li>Guidance derives from one simulated human dataset with a computationally predicted truth set; RT and RNase R artefacts are not modelled.</li>
+        <li>The miRNA and differential expression modules are not independently benchmarked.</li>
+        <li>Annotation requires a reference GTF; the 200 bp exon-boundary default was not optimised.</li>
+        <li>The 2,420 additional circRNAs are unvalidated.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023.</p>
+  <aside class="notes"><p>~1 min. State limitations as scope: the chapter is a software contribution with an empirical evaluation of the quantification step. Contribution to knowledge: evidence-based defaults for multi-tool circRNA quantification and a portable implementation.</p></aside>
+</section>
+
+<!-- ============================ CHAPTER 4 (7 min) ============================ -->
+
+<section class="slide" data-sec="pycircdb" data-min="1" data-title="Database heterogeneity">
+  <p class="kicker">Chapter 4 &middot; pycircdb</p>
+  <h1>Heterogeneity among public circRNA databases limits reproducible annotation</h1>
+  <div class="body c2" style="grid-template-columns:.8fr 1.2fr">
+    <div class="col">
+      <p class="t sm" style="margin-bottom:6px">Identifiers returned for <code>chr1:27087346-27089776|+</code> (hg19):</p>
+      <table class="tbl sm">
+        <tr><td>Arraystar</td><td>ASCRP3003018</td></tr>
+        <tr><td>circAtlas</td><td>hsa-ARID1A_0002</td></tr>
+        <tr><td>circBank</td><td>hsa_ARID1A_0003300</td></tr>
+        <tr><td>circBase</td><td>hsa_circ_0006913</td></tr>
+      </table>
+      <ul class="t sm" style="margin-top:14px">
+        <li>Mixed 0- and 1-based coordinates; hg19 and hg38 assemblies.</li>
+        <li>Most resources offer single-query web interfaces or bulk downloads only.</li>
+      </ul>
+    </div>
+    <table class="tbl xs">
+      <tr><th>Resource</th><th class="c">miRNA</th><th class="c">RBP</th><th class="c">API</th><th class="c">Batch</th><th class="c">Multi-species</th></tr>
+      <tr><td>circAtlas</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10003;</td></tr>
+      <tr><td>circBase</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10003;</td><td class="c">&#10003;</td></tr>
+      <tr><td>circBank</td><td class="c">&#10003;</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10003;</td></tr>
+      <tr><td>CircNet</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10007;</td></tr>
+      <tr><td>CIRCpedia</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10003;</td><td class="c">&#10003;</td></tr>
+      <tr><td>CSCD</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10007;</td><td class="c">&#10007;</td><td class="c">&#10007;</td></tr>
+      <tr><td>starBase</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10003;</td></tr>
+      <tr class="hl"><td>pycircdb</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10007;</td></tr>
+    </table>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted), thesis Table 4.S1; Chen et al., 2023. For pycircdb, API denotes the command-line interface.</p>
+  <aside class="notes"><p>~1 min. Three barriers: identifiers, coordinate systems, and absence of programmatic batch access. starBase offers an API and batch queries but not the coordinate harmonisation across databases. pycircdb is limited to human.</p></aside>
+</section>
+
+<section class="slide" data-sec="pycircdb" data-min="1" data-title="Database selection">
+  <p class="kicker">Chapter 4 &middot; pycircdb</p>
+  <h1>Nine databases integrated and their use in the annotation modules</h1>
+  <div class="body c2" style="grid-template-columns:1.4fr .6fr">
+    <table class="tbl sm">
+      <tr><th>Database</th><th>Assembly</th><th>Coord.</th><th class="n">Entries</th><th class="c">Annot.</th><th class="c">FASTA</th><th class="c">miRNA</th><th class="c">RBP</th></tr>
+      <tr><td>Arraystar</td><td>hg19</td><td>1</td><td class="n">13,154</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c"></td><td class="c"></td></tr>
+      <tr><td>circAtlas</td><td>hg38</td><td>1</td><td class="n">768,986</td><td class="c">&#10003;</td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+      <tr><td>circBank</td><td>hg19</td><td>1</td><td class="n">828,802</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c"></td><td class="c"></td></tr>
+      <tr><td>circBase</td><td>hg19</td><td>0</td><td class="n">92,369</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c"></td><td class="c"></td></tr>
+      <tr><td>CircNet</td><td>hg19</td><td>1</td><td class="n">6,913,950</td><td class="c"></td><td class="c"></td><td class="c">&#10003;</td><td class="c"></td></tr>
+      <tr><td>CIRCpedia</td><td>hg38</td><td>0</td><td class="n">849,495</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c"></td><td class="c"></td></tr>
+      <tr><td>circRNADb</td><td>hg19</td><td>1</td><td class="n">32,942</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c"></td><td class="c"></td></tr>
+      <tr><td>CSCD</td><td>hg38</td><td>1</td><td class="n">2,749,897</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10003;</td><td class="c">&#10003;</td></tr>
+      <tr><td>exoRBase</td><td>hg38</td><td>1</td><td class="n">126,816</td><td class="c">&#10003;</td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+    </table>
+    <div class="col">
+      <h3>Exclusions</h3>
+      <ul class="t sm" style="font-size:16px">
+        <li>CircInteractome: substantial overlap with circBase.</li>
+        <li>CircFunBase: 3,799 human records.</li>
+        <li>MiOncoCirc, NeuroCirc: sample-level membership only.</li>
+        <li>Several databases inaccessible.</li>
+      </ul>
+      <p class="t sm muted" style="font-size:16px">Database files are versioned independently of the package; earlier snapshots are retained.</p>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted), thesis Table 4.1. Coord. = native coordinate base. CircNet entries are circRNA&ndash;miRNA interactions.</p>
+  <aside class="notes"><p>~1 min. Selection criterion was publicly available human data for bulk download. Check: circRNADb is 32,942 entries here and 32,914 in Supplementary Table 4.S2; know the reason (for example de-duplication).</p></aside>
+</section>
+
+<section class="slide" data-sec="pycircdb" data-min="1" data-title="Coordinate harmonisation">
+  <p class="kicker">Chapter 4 &middot; pycircdb</p>
+  <h1>Coordinate normalisation and cross-mapping between genome assemblies</h1>
+  <div class="body c2" style="grid-template-columns:1.1fr .9fr">
+    <ul class="t sm">
+      <li>All coordinates converted to a common 0-based representation.</li>
+      <li>hg19&harr;hg38 cross-mapping with UCSC liftOver (default settings; both chain files); every circRNA stored with both coordinates.</li>
+      <li>One-to-many mappings, arising in segmentally duplicated and repeat-rich regions, are retained rather than collapsed.</li>
+      <li>CSCD redundancy removed: 1-based CIRI-only entries and antisense circRNA_finder entries, justified by strand-specific circBase identifiers.</li>
+      <li>FASTA sequences are retained in the source assembly, which is encoded in the file name.</li>
+    </ul>
+    <table class="tbl xs">
+      <tr><th>Database</th><th class="n">Total</th><th class="n">hg19-only</th><th class="n">hg38-only</th><th class="n">Multi-mapped</th></tr>
+      <tr><td>Arraystar</td><td class="n">13,154</td><td class="n">12</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>circRNADb</td><td class="n">32,914</td><td class="n">38</td><td class="n">0</td><td class="n">11</td></tr>
+      <tr><td>circAtlas</td><td class="n">768,986</td><td class="n">0</td><td class="n">1,311</td><td class="n">21</td></tr>
+      <tr><td>circBank</td><td class="n">828,802</td><td class="n">478</td><td class="n">0</td><td class="n">35</td></tr>
+      <tr><td>circBase</td><td class="n">92,369</td><td class="n">258</td><td class="n">0</td><td class="n">32</td></tr>
+      <tr><td>CIRCpedia</td><td class="n">849,495</td><td class="n">0</td><td class="n">1,928</td><td class="n">337</td></tr>
+      <tr><td>CSCD</td><td class="n">2,749,897</td><td class="n">0</td><td class="n">3,863</td><td class="n">129</td></tr>
+      <tr><td>exoRBase</td><td class="n">126,816</td><td class="n">0</td><td class="n">378</td><td class="n">78</td></tr>
+    </table>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted), thesis Table 4.S2.</p>
+  <aside class="notes"><p>~1 min. Single-build entries are circRNAs that failed liftOver, and they are retained for the native assembly of each database (hg19-native resources keep hg19-only rows, hg38-native resources keep hg38-only rows). The one-to-many example is in the supplementary slides.</p></aside>
+</section>
+
+<section class="slide" data-sec="pycircdb" data-min="1" data-title="Software design">
+  <p class="kicker">Chapter 4 &middot; pycircdb</p>
+  <h1>Software design: Apache Hamilton workflow and partitioned Parquet storage</h1>
+  <div class="body c2" style="grid-template-columns:.8fr 1.2fr">
+    <figure style="--fh:455px">
+      <img src="../Chapter4/Figures/Figure_1.png" alt="Overview of the pycircdb tool">
+      <figcaption>Thesis Figure 4.1. (1) input, (2) matching, (3) annotate, fasta, mirna and rbp modules, (4) outputs.</figcaption>
+    </figure>
+    <ul class="t sm">
+      <li>Python command-line interface configured with a JSON file (global and per-sample parameters; reference build hg19 or hg38).</li>
+      <li>Functions are arranged as a directed acyclic graph with Apache Hamilton, permitting configuration-driven parallel execution.</li>
+      <li>Tables are stored as Parquet on AWS S3 (3.6 GB in total); only the requested databases and, for miRNA and RBP tables, the chromosomes present in the input are downloaded.</li>
+      <li>Commands: <code>init-demo</code>, <code>annotate</code>, <code>fasta</code>, <code>mirna</code> (miRanda, PITA, TargetScan) and <code>rbp</code>.</li>
+      <li>Continuous integration on Ubuntu, macOS and Windows with Python 3.10&ndash;3.14.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted).</p>
+  <aside class="notes"><p>~1 min. Design aim: run on workstation-class hardware without a database server, and make results reproducible by pinning database versions to package releases.</p></aside>
+</section>
+
+<section class="slide" data-sec="pycircdb" data-min="0.75" data-title="Tolerant coordinate matching">
+  <p class="kicker">Chapter 4 &middot; pycircdb</p>
+  <h1>Tolerant coordinate matching for inputs from heterogeneous quantification tools</h1>
+  <div class="body c2">
+    <ul class="t sm">
+      <li>Input format: <code>chr:start-end|strand</code> (strand optional; <code>chr</code> prefix required; chr1&ndash;22, X, Y, M).</li>
+      <li>For each input, three start positions are tested (original, &minus;1 and +1 bp) with the end fixed, accommodating 0- versus 1-based conventions.</li>
+      <li>With strand: exact match including strand. Without strand: strand is stripped from database entries and all strands at the matched position are returned.</li>
+      <li>chrM is supported by <code>annotate</code> and <code>fasta</code> but not by <code>mirna</code> and <code>rbp</code>.</li>
+    </ul>
+    <div class="col">
+      <table class="tbl sm">
+        <tr><th>Example input</th><th>Matching mode</th></tr>
+        <tr><td><code>chr2:9238-9932|-</code></td><td>Exact</td></tr>
+        <tr><td><code>chrX:3623-5589</code></td><td>Strand-ambiguous</td></tr>
+        <tr><td><code>chrM:9829-9921|-</code></td><td>Tolerant coordinate</td></tr>
+      </table>
+      <p class="t sm muted" style="margin-top:12px">Tolerant and strand-ambiguous matches are not distinguished in the output; multi-mapping circRNAs are listed in the execution report.</p>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted), thesis Figure 4.1.</p>
+  <aside class="notes"><p>~0.75 min. Anticipated question: false matches from the &plusmn;1 bp tolerance. The tolerance is one base at the start only; the consequence is that distinct circRNAs differing by one base at the start could match, which is not distinguished in the output (stated limitation).</p></aside>
+</section>
+
+<section class="slide" data-sec="pycircdb" data-min="1.25" data-title="Validation and performance">
+  <p class="kicker">Chapter 4 &middot; pycircdb</p>
+  <h1>Validation of identifier retrieval and scaling of runtime and memory</h1>
+  <div class="body c2" style="grid-template-columns:.95fr 1.05fr">
+    <div class="col">
+      <ul class="t sm">
+        <li>Six circRNAs present in all eight annotation databases (<code>init-demo</code>): the expected database identifier was returned in every case.</li>
+        <li>High-confidence inputs (&ge; 3 BSJ reads, &ge; 3 of 7 tools; 100, 1,000, 10,000 circRNAs): annotations returned for &gt; 97% across all four modules.</li>
+        <li>300,000 circRNAs across all four modules: 66.7 s, 3.8 GB peak RAM, 691 MB of output.</li>
+      </ul>
+      <table class="tbl xs" style="margin-top:12px">
+        <tr><th class="n">Input</th><th class="n">Time (s)</th><th class="n">Peak RAM (GB)</th><th class="n">Output (MB)</th></tr>
+        <tr><td class="n">100<sup>&dagger;</sup></td><td class="n">13.7</td><td class="n">2.3</td><td class="n">2.6</td></tr>
+        <tr><td class="n">1,000<sup>&dagger;</sup></td><td class="n">16.2</td><td class="n">2.5</td><td class="n">23.4</td></tr>
+        <tr><td class="n">10,000<sup>&dagger;</sup></td><td class="n">25.8</td><td class="n">2.7</td><td class="n">228.8</td></tr>
+        <tr><td class="n">100,000</td><td class="n">35.0</td><td class="n">3.1</td><td class="n">240.5</td></tr>
+        <tr><td class="n">200,000</td><td class="n">52.9</td><td class="n">3.3</td><td class="n">469.8</td></tr>
+        <tr><td class="n">300,000</td><td class="n">66.7</td><td class="n">3.8</td><td class="n">690.7</td></tr>
+      </table>
+    </div>
+    <figure>
+      <div id="plot-scaling" style="width:100%"></div>
+      <figcaption>Wall-clock time against input size (thesis Table 4.2). Filled: high-confidence inputs (&dagger;); open: randomly sampled, unfiltered inputs. Databases pre-cached; download time excluded.</figcaption>
+    </figure>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted). Benchmark: two glioblastoma samples (SRR5133906, SRR5133907); seven quantification tools (Digby et al., 2023).</p>
+  <aside class="notes"><p>~1.25 min. Be clear about the scope of validation: identifier retrieval was checked on a six-circRNA demonstration set and annotation yield on real quantification output; this is a lookup tool, so correctness of annotations is inherited from the source databases. Scaling is sub-linear from 100 to 10,000 inputs because fixed start-up costs dominate.</p></aside>
+</section>
+
+<section class="slide" data-sec="pycircdb" data-min="1" data-title="Outputs, limitations and scope">
+  <p class="kicker">Chapter 4 &middot; pycircdb</p>
+  <h1>Outputs, limitations and scope of pycircdb</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>Outputs</h3>
+      <ul class="t sm">
+        <li>Execution report: software and database versions, configuration, database provenance, per-database mapping statistics including multi-mappers.</li>
+        <li>Annotation tables per database (identifier, hg19 and hg38 coordinates, host gene, biotype, transcript where available).</li>
+        <li>FASTA sequences from six databases.</li>
+        <li>miRNA interactions: 184,125,383 circRNA&ndash;miRNA pairs (CSCD, CircNet; miRanda, PITA, TargetScan).</li>
+        <li>RBP interactions from CSCD (106,438,146 entries).</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Limitations</h3>
+      <ul class="t sm">
+        <li>Human only (hg19, hg38).</li>
+        <li>Dependent on the accuracy, curation and continued availability of source databases.</li>
+        <li>A small fraction of coordinates in complex regions fails liftOver.</li>
+        <li>Sequences are as provided by the sources and are not regenerated from input coordinates.</li>
+      </ul>
+      <p class="callout">The nomenclature proposed by Chen et al. (2023) can be adopted by mapping existing identifiers through pycircdb.</p>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted); Chen et al., 2023.</p>
+  <aside class="notes"><p>~1 min. Contribution to knowledge: a versioned, coordinate-harmonised resource and programmatic interface to nine databases. Nine database overlaps (Jaccard indices mostly below 25%) show that no single database is sufficient; see supplementary slides.</p></aside>
+</section>
+
+<!-- ============================ CHAPTER 5 (11 min) ============================ -->
+
+<section class="slide" data-sec="cerna" data-min="1" data-title="Study design">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Study design: ceRNA network-constrained feature selection for prognostic modelling</h1>
+  <div class="body c2" style="grid-template-columns:1fr 1fr">
+    <div class="col">
+      <ul class="t sm">
+        <li>High-dimensional transcriptomic data with few events risk overfitting when features are selected without constraint.</li>
+        <li>The ceRNA hypothesis provides a knowledge-based restriction of the feature space across circRNA, miRNA and mRNA.</li>
+        <li>Prior ceRNA-based prognostic studies typically report limited validation and little heterogeneity across cohorts.</li>
+        <li>Datasets: two circRNA, seven miRNA and five mRNA expression datasets for network construction; ten survival cohorts for modelling and validation.</li>
+      </ul>
+    </div>
+    <div class="flow">
+      <div class="fbox"><b>1 &middot; Differential expression</b>PCa versus normal and enzalutamide-resistant versus sensitive; concordant direction</div>
+      <div class="farrow">&darr;</div>
+      <div class="fbox"><b>2 &middot; Target prediction</b>circRNA&ndash;miRNA and miRNA&ndash;mRNA pairs</div>
+      <div class="farrow">&darr;</div>
+      <div class="fbox"><b>3 &middot; ceRNA filtering</b>Inverse expression of paired RNAs</div>
+      <div class="farrow">&darr;</div>
+      <div class="fbox"><b>4 &middot; Model development</b>CoxBoost on network mRNAs, Gleason score and PSA (nine cohorts)</div>
+      <div class="farrow">&darr;</div>
+      <div class="fbox"><b>5 &middot; Evaluation</b>Bootstrap optimism, internal&ndash;external cross-validation, external validation, published signatures</div>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review); Steyerberg et al., 2015; Riley et al., 2016; Dhiman et al., 2021.</p>
+  <aside class="notes"><p>~1 min. The central design choice is using network topology as a prior for feature selection, rather than purely data-driven reduction. Evaluate how the choice compares with glmnet or random survival forests: those methods did not produce predictor sets of suitable size (limitations).</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="0.75" data-title="Datasets">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Transcriptomic datasets used for network construction</h1>
+  <div class="body stack">
+    <table class="tbl sm">
+      <tr><th>RNA type</th><th>Datasets</th><th>Contrasts</th><th>Platform</th></tr>
+      <tr><td>circRNA</td><td>GSE113153; GSE118959</td><td>Gleason high vs low; LNCaP clones 1 and 9 vs control</td><td>Arraystar microarray</td></tr>
+      <tr><td>miRNA</td><td>GSE21036, GSE23022, GSE36803, GSE45604, GSE46738, TCGA-PRAD</td><td>Tumour vs normal</td><td>Microarray; Illumina HiSeq</td></tr>
+      <tr><td>miRNA</td><td>GSE312115 (in-house)</td><td>LNCaP clones 1 and 9 vs control</td><td>Small RNA-seq (MiSeq)</td></tr>
+      <tr><td>mRNA</td><td>TCGA-PRAD</td><td>Tumour vs normal (498/52)</td><td>Illumina HiSeq</td></tr>
+      <tr><td>mRNA</td><td>GSE143408, GSE78201, GSE88752</td><td>Enzalutamide-treated vs control or sensitive</td><td>Microarray; RNA-seq</td></tr>
+      <tr><td>mRNA</td><td>In-house LNCaP</td><td>Clones 1 and 9 vs control</td><td>RNA-seq (NovaSeq)</td></tr>
+    </table>
+    <ul class="t sm">
+      <li>Clone 1: highly enzalutamide-resistant LNCaP; clone 9: moderately resistant.</li>
+      <li>Differential expression with limma; Benjamini&ndash;Hochberg adjusted <em>P</em> &le; 0.05. Features retained when significant in both contrasts with the same direction of change.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review), thesis Tables 5.S1&ndash;5.S2. Small RNA-seq data deposited at GSE312115.</p>
+  <aside class="notes"><p>~0.75 min. Each RNA type includes at least one cancer-versus-normal contrast and at least one resistance contrast. Note that the circRNA cancer-associated contrast is Gleason high versus low (10 tumours), not tumour versus normal. All in-house LNCaP data are deposited.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="1.25" data-title="Network construction">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Construction of the circRNA&ndash;miRNA&ndash;mRNA network</h1>
+  <div class="body c2" style="grid-template-columns:1.25fr .75fr">
+    <ol class="steps">
+      <li class="frag"><b>Differential expression</b>: 232 circRNAs, 42 miRNAs and 1,310 mRNAs with concordant change across contrasts.</li>
+      <li class="frag"><b>circRNA&ndash;miRNA prediction</b> (CircBase, CSCD): 30,727 pairs; all 42 DE-miRNAs retained.</li>
+      <li class="frag"><b>miRNA&ndash;mRNA prediction</b> (TargetScan, miRNet, miRTarBase, miRBase): 61,193 predictions; 1,090 DE-mRNAs retained.</li>
+      <li class="frag"><b>Inverse-expression (ceRNA) filter</b>: 124 circRNAs, 38 miRNAs and 817 mRNAs.</li>
+    </ol>
+    <div class="col frag">
+      <table class="tbl sm">
+        <tr><th>RNA type</th><th class="n">Up</th><th class="n">Down</th><th class="n">Total</th></tr>
+        <tr><td>circRNA</td><td class="n">168</td><td class="n">64</td><td class="n">232</td></tr>
+        <tr><td>miRNA</td><td class="n">16</td><td class="n">26</td><td class="n">42</td></tr>
+        <tr><td>mRNA</td><td class="n">691</td><td class="n">619</td><td class="n">1,310</td></tr>
+      </table>
+      <p class="t sm muted" style="margin-top:10px">Concordant differentially expressed RNAs (thesis Table 5.1). Retained patterns: circRNA&uarr;&ndash;miRNA&darr;&ndash;mRNA&uarr; and the inverse.</p>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review); network provided as Supplementary_3.csv.</p>
+  <aside class="notes"><p>~1.25 min. Step through the reveals. The ceRNA filter reduces candidate mRNAs from 1,090 to 817 before any survival modelling. Expect a question on the use of database-derived circRNA&ndash;miRNA predictions (CircBase, CSCD) rather than predictions made on sequences from nf-core/circrna: these depend on the mature sequences held by those databases.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="1" data-title="Model development">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Prognostic model development and evaluation framework</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>Development</h3>
+      <ul class="t sm">
+        <li>Derivation set: nine cohorts (Belfast, CIT, CMap, CPC, DKFZ, GSE54460, Stockholm, TCGA, Taylor); outcome time to BCR.</li>
+        <li>681 predictors: 679 network mRNAs present in the cohorts, Gleason score and PSA; expression centred and scaled.</li>
+        <li>CoxBoost with <code>minstepno</code> = 5 and <code>maxstepno</code> = 35 to constrain the number of predictors (15&ndash;50 events per predictor).</li>
+        <li>26 non-zero coefficients; three removed for violating proportional hazards (Schoenfeld residuals): <strong>23 genes</strong>.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Evaluation</h3>
+      <table class="tbl sm">
+        <tr><td>Discrimination and calibration</td><td>Harrell&rsquo;s C, calibration slope, Kaplan&ndash;Meier, hazard ratio, time-dependent AUC</td></tr>
+        <tr><td>Optimism</td><td>Bootstrap (M = 200), including predictor selection</td></tr>
+        <tr><td>Transportability</td><td>Internal&ndash;external cross-validation, random-effects meta-analysis</td></tr>
+        <tr><td>External validation</td><td>GSE46602, coefficients fixed</td></tr>
+        <tr><td>Comparison</td><td>30 published signatures</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review); Royston et al., 2013; Harrell et al., 1996.</p>
+  <aside class="notes"><p>~1 min. Gleason score and PSA were the only clinical variables available across all cohorts; this limits adjustment. CoxBoost was chosen because the step parameters allowed control of predictor-set size.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="1" data-title="Derivation performance">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Performance of the 23-gene signature in the derivation dataset</h1>
+  <div class="body c2" style="grid-template-columns:1.35fr .65fr">
+    <figure style="--fh:455px">
+      <img src="../Chapter3/Figures/Figure_1.png" alt="Forest plot of coefficients, Kaplan-Meier curves and time-dependent ROC curves in the derivation dataset">
+      <figcaption>Thesis Figure 5.1. (A) Hazard ratios of the 23 retained predictors; (B) Kaplan&ndash;Meier curves by median prognostic index; (C) time-dependent ROC.</figcaption>
+    </figure>
+    <ul class="t sm" style="font-size:18px">
+      <li>High versus low risk: HR 1.385 (95% CI 1.15&ndash;1.62); log-rank <em>P</em> &lt; 0.0001.</li>
+      <li>Time-dependent AUC 0.75 at 1, 3 and 5 years.</li>
+      <li>Harrell&rsquo;s C 0.73.</li>
+      <li>Calibration slope 1.59 (1.41&ndash;1.77).</li>
+      <li>Calibration curves show overestimation of risk at low predicted probabilities and underestimation at high probabilities (supplementary slides).</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review), thesis Figure 5.1 and Table 5.2.</p>
+  <aside class="notes"><p>~1 min. These are apparent (derivation) estimates and are optimistic by construction; the next slides quantify the optimism. No individual gene reaches a large effect: the signature acts as a multivariable index.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="1" data-title="Bootstrap validation">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Bootstrap validation: predictor stability and optimism-corrected discrimination</h1>
+  <div class="body c2" style="grid-template-columns:1.1fr .9fr">
+    <div class="col" id="chart-boot"></div>
+    <div class="col">
+      <table class="tbl">
+        <tr><td>Apparent Harrell&rsquo;s C</td><td class="n">0.7291</td></tr>
+        <tr><td>Mean optimism (200 bootstraps)</td><td class="n">0.04725</td></tr>
+        <tr><td><b>Optimism-corrected C</b></td><td class="n"><b>0.6818</b></td></tr>
+      </table>
+      <ul class="t sm" style="margin-top:14px">
+        <li>A core subset of genes was selected consistently across resamples; others (MAPK8IP2, B4GALT1) were unstable.</li>
+        <li>Gleason score was the most frequently selected predictor (118 of 200) but was not retained in the model fitted to the original data.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review); Harrell et al., 1996; thesis Table 5.S5.</p>
+  <aside class="notes"><p>~1 min. The optimism estimate re-runs predictor selection within each bootstrap sample, so it accounts for selection-induced overfitting. Expected discrimination in new data is therefore closer to 0.68 than 0.73.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="1.25" data-title="Internal-external cross-validation">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Internal&ndash;external cross-validation across the nine derivation cohorts</h1>
+  <div class="body c2" style="grid-template-columns:.85fr 1.15fr">
+    <figure style="--fh:455px">
+      <img src="../Chapter3/Figures/Figure_2.png" alt="Forest plots of calibration slope and Harrell's C for internal-external cross-validation">
+      <figcaption>Thesis Figure 5.2. Calibration slope (top) and Harrell&rsquo;s C (bottom) for each held-out cohort with random-effects pooled estimates.</figcaption>
+    </figure>
+    <ul class="t sm" style="font-size:18px">
+      <li>Each cohort held out in turn; coefficients fixed from the remaining cohorts, without recalibration.</li>
+      <li>Calibration slope: pooled 1.61 (1.35&ndash;1.86); range 1.19 (CMap) to 2.28 (Belfast); <em>I</em><sup>2</sup> = 43.3%, &tau;<sup>2</sup> = 0.065, <em>P</em> = 0.079 (moderate heterogeneity).</li>
+      <li>Harrell&rsquo;s C: range 0.68&ndash;0.84; pooled 0.74 (0.69&ndash;0.79); <em>I</em><sup>2</sup> = 0%, <em>P</em> = 0.89, with wide per-cohort intervals.</li>
+      <li>Gene-level random-slope variance (mixed-effects Cox): low for 18 of 23 genes; elevated for <em>PHYHD1</em>, <em>LIX1</em>, <em>MTERF4</em> and <em>SPARC</em>.</li>
+      <li>A full mixed-effects model with random slopes did not converge.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review); Steyerberg et al., 2015.</p>
+  <aside class="notes"><p>~1.25 min. Calibration slopes above 1 indicate that predictor effects are underestimated in new cohorts (under-dispersed predictions), not overfitting. The absence of detectable heterogeneity in C should not be over-interpreted because the number of cohorts is small and intervals are wide. Pooled C of 0.74 is read from the thesis figure.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="1" data-title="External validation">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>External validation in an independent cohort (GSE46602)</h1>
+  <div class="body stack">
+    <figure style="--fh:325px">
+      <img src="../Chapter3/Figures/Figure_3.png" alt="Kaplan-Meier and time-dependent ROC curves in the validation cohort">
+      <figcaption>Thesis Figure 5.3. (A) Kaplan&ndash;Meier curves by median prognostic index; (B) time-dependent ROC. GSE46602, 36 patients.</figcaption>
+    </figure>
+    <table class="tbl sm">
+      <tr><th></th><th>Calibration slope (95% CI)</th><th class="n">Harrell&rsquo;s C</th><th>HR, high risk (95% CI)</th><th>AUC at 1 / 3 / 5 y</th></tr>
+      <tr><td>Derivation</td><td>1.59 (1.41&ndash;1.77)</td><td class="n">0.73</td><td>1.38 (1.15&ndash;1.62)</td><td>0.75 / 0.75 / 0.75</td></tr>
+      <tr><td>Validation</td><td>1.33 (0.59&ndash;2.06)</td><td class="n">0.71</td><td>1.48 (0.52&ndash;2.44)</td><td>0.67 / 0.78 / 0.87</td></tr>
+    </table>
+    <p class="t sm muted">The validation cohort is small, and confidence intervals are correspondingly wide.</p>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review), thesis Table 5.2 and Figure 5.3.</p>
+  <aside class="notes"><p>~1 min. Check before the viva: the chapter text reports 22 BCR events among 36 patients, whereas Supplementary Table 5.S3 lists 14/36. Also confirm the validation hazard ratio interval (0.52&ndash;2.44): it spans 1 yet is reported with P = 0.00257 in Table 5.2 (the log-rank P in Figure 5.3A is 0.0011), which an examiner may query. A 5-year AUC of 0.87 in 36 patients should be presented with that caveat.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="1" data-title="Comparison with published signatures">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Comparison with published prognostic signatures in the validation cohort</h1>
+  <div class="body c2" style="grid-template-columns:1.3fr .7fr">
+    <div class="col" id="chart-sigs"></div>
+    <ul class="t sm" style="font-size:17px">
+      <li>30 published signatures (3&ndash;222 genes) were refitted as Cox models using the same cohort; coefficients were unavailable, so only feature selection is compared, and no clinical covariates are included.</li>
+      <li>Signatures with more than 28 predictors were excluded (12): overfitting in 36 patients produced undefined C-indices and very wide intervals.</li>
+      <li>This signature (C 0.71) ranks below most retained signatures on C; the highest was Long et al. (0.98).</li>
+      <li>Only <em>SFRP4</em> and <em>BGN</em> are shared with any published signature.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review), thesis Table 5.3 and Table 5.S4.</p>
+  <aside class="notes"><p>~1 min. Present this plainly: discrimination is lower than several published signatures in this small cohort. The distinct gene content is the argument for network-derived selection; neither the ranking nor the 5-year AUC in 36 patients should be over-interpreted. Table 5.3 lists 17 published signatures; check why Yang (28 genes) is absent.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="0.75" data-title="Gene-level biological context">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Biological context of selected signature genes</h1>
+  <div class="body stack">
+    <table class="tbl sm">
+      <tr><th>Gene</th><th class="n">logFC</th><th>HR (95% CI)</th><th>Previously reported context</th></tr>
+      <tr><td><em>SFRP4</em></td><td class="n">+1.40</td><td>1.07 (0.94&ndash;1.23)</td><td>Wnt pathway modulator; predictor of PCa aggressiveness; included in Oncotype DX</td></tr>
+      <tr><td><em>BGN</em></td><td class="n">+1.37</td><td>1.12 (0.95&ndash;1.32)</td><td>Extracellular matrix proteoglycan; overexpression associated with BCR, not independently of clinical covariates</td></tr>
+      <tr><td><em>SPARC</em></td><td class="n">&minus;0.48</td><td>1.11 (0.96&ndash;1.29)</td><td>Higher expression reported in metastatic disease; downregulation in PCa also reported</td></tr>
+      <tr><td><em>NEU3</em></td><td class="n">+0.51</td><td>1.05 (0.95&ndash;1.16)</td><td>Sialidase; induces <em>EGR1</em>, AR and PSA expression in LNCaP cells</td></tr>
+      <tr><td><em>MAPK8IP2</em></td><td class="n">+2.35</td><td>1.07 (0.95&ndash;1.21)</td><td>Upregulated in CRPC; associated with BCR</td></tr>
+      <tr><td><em>B4GALT1</em></td><td class="n">&minus;0.45</td><td>0.94 (0.84&ndash;1.05)</td><td>Silenced by AKR1C3 in CRPC</td></tr>
+      <tr><td><em>BHLHE40</em></td><td class="n">&minus;1.95</td><td>0.96 (0.85&ndash;1.08)</td><td>Circadian repressor; downregulation associated with poor outcome</td></tr>
+      <tr><td><em>PDCD4</em></td><td class="n">&minus;0.79</td><td>0.95 (0.85&ndash;1.07)</td><td>Tumour suppressor; regulates proliferation and castration resistance</td></tr>
+      <tr><td><em>LIX1</em></td><td class="n">&minus;2.48</td><td>0.87 (0.77&ndash;0.98)</td><td>Downregulation consistent with recent reports (Fan et al., 2025)</td></tr>
+      <tr><td><em>FA2H</em></td><td class="n">+0.62</td><td>0.95 (0.85&ndash;1.05)</td><td>Silencing associated with progression in other cancers; present in the CMU5 signature</td></tr>
+      <tr><td><em>SS18L2</em></td><td class="n">+0.54</td><td>1.06 (0.96&ndash;1.18)</td><td>No prior PCa reports</td></tr>
+    </table>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review). logFC: PCa and enzalutamide-resistant samples; HR from the multivariable Cox model. References as cited in the thesis Chapter 5 discussion.</p>
+  <aside class="notes"><p>~0.75 min. Direction of logFC and HR are broadly consistent with the literature for most genes, SPARC being the exception reported in the chapter. Most individual hazard ratios have confidence intervals spanning 1; only <em>LIX1</em> (and <em>SSTR1</em> in Figure 5.1) are nominally significant, which is expected for a multivariable index.</p></aside>
+</section>
+
+<section class="slide" data-sec="cerna" data-min="1" data-title="Summary and limitations">
+  <p class="kicker">Chapter 5 &middot; ceRNA-derived prognostic signature</p>
+  <h1>Chapter 5: summary and limitations</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>Findings</h3>
+      <ul class="t sm">
+        <li>ceRNA network of 124 circRNAs, 38 miRNAs and 817 mRNAs shared between PCa and enzalutamide resistance.</li>
+        <li>23-gene signature: apparent C 0.73; optimism-corrected 0.68; pooled internal&ndash;external 0.74; external 0.71 (5-year AUC 0.87).</li>
+        <li>Largely distinct from published signatures (2 of 23 genes shared).</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Limitations</h3>
+      <ul class="t sm">
+        <li>Clinical covariates limited to PSA and Gleason score.</li>
+        <li>Alternative selection methods (glmnet, random survival forests) did not yield suitable predictor-set sizes; no comparison made.</li>
+        <li>Moderate heterogeneity in calibration; mixed-effects random-slope model did not converge.</li>
+        <li>Small external cohort; retrospective data; calibration curves deviate from identity.</li>
+        <li>2D LNCaP models; no functional validation of circRNA mechanisms.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review).</p>
+  <aside class="notes"><p>~1 min. Contribution to knowledge: a transparent framework in which regulatory-network structure restricts the feature space, evaluated with optimism correction, internal&ndash;external cross-validation and external validation, and a candidate gene set not captured by existing panels. Causality and mechanism are not tested.</p></aside>
+</section>
+
+<!-- ============================ DISCUSSION (4 min) ============================ -->
+
+<section class="slide" data-sec="disc" data-min="1" data-title="Principal findings">
+  <p class="kicker">Chapter 6 &middot; Discussion</p>
+  <h1>Principal findings</h1>
+  <div class="body stack">
+    <table class="tbl">
+      <tr><th style="width:9%">Chapter</th><th>Finding</th><th style="width:36%">Key evidence</th></tr>
+      <tr><td class="n">2</td><td>circRNA detection is fragmented across tools and lacks a gold standard; multi-tool consensus is the most effective mitigation.</td><td>854 of 5,071 circRNAs shared by five tools</td></tr>
+      <tr><td class="n">3</td><td>nf-core/circrna integrates seven tools, miRNA prediction and differential expression; three tools with &ge; 2 agreement are near-optimal.</td><td>F1 97.8% (simulation)</td></tr>
+      <tr><td class="n">4</td><td>pycircdb unifies nine databases (0-based, hg19/hg38) for batch annotation on modest hardware.</td><td>300,000 circRNAs in 66.7 s, 3.8 GB RAM</td></tr>
+      <tr><td class="n">5</td><td>A ceRNA-constrained 23-gene signature is associated with five-year biochemical recurrence.</td><td>C 0.73 apparent, 0.68 corrected; external C 0.71</td></tr>
+    </table>
+  </div>
+  <p class="refs">Digby et al., 2023, 2024, 2026.</p>
+  <aside class="notes"><p>~1 min. Restate each finding in one sentence and tie it to its research question: Chapter 2 answers question 1, Chapters 3&ndash;4 question 2, Chapter 5 question 3.</p></aside>
+</section>
+
+<section class="slide" data-sec="disc" data-min="0.75" data-title="Contributions to knowledge">
+  <p class="kicker">Chapter 6 &middot; Discussion</p>
+  <h1>Contributions to knowledge</h1>
+  <div class="body stack">
+    <ol class="t" style="padding-left:28px;margin:0;font-size:23px;line-height:1.45">
+      <li>Evidence-based defaults for multi-tool circRNA quantification (combinatorial evaluation of seven tools) and a portable, containerised implementation.</li>
+      <li>A versioned, coordinate-harmonised resource and command-line interface for annotating circRNAs across nine databases.</li>
+      <li>A knowledge-based (ceRNA) feature selection framework for prognostic modelling, evaluated with optimism correction, internal&ndash;external cross-validation, external validation and comparison with published signatures.</li>
+      <li>Transcriptomic data from enzalutamide-resistant LNCaP clones (small RNA-seq deposited at GSE312115), and a candidate gene set largely distinct from existing panels.</li>
+    </ol>
+    <p class="t sm muted">Software: nf-core/circrna (nf-co.re/circrna), pycircdb (PyPI, GPL-3.0), analysis code at github.com/BarryDigby/pca_network.</p>
+  </div>
+  <p class="refs">Digby et al., 2023, 2024, 2026.</p>
+  <aside class="notes"><p>~0.75 min. State originality in terms of what is new in each chapter, not only the software. For Chapter 3 the originality is the combination of integrated modules with simulation-derived guidance, bounded to the workflows surveyed at the time.</p></aside>
+</section>
+
+<section class="slide" data-sec="disc" data-min="0.75" data-title="Limitations">
+  <p class="kicker">Chapter 6 &middot; Discussion</p>
+  <h1>Methodological and biological limitations</h1>
+  <div class="body" style="grid-template-columns:repeat(3,1fr);gap:28px">
+    <div class="col">
+      <h3>Computational</h3>
+      <ul class="t sm" style="font-size:17px">
+        <li>Short-read BSJ methods do not resolve internal exon composition; miRNA response elements predicted from reference-guided sequences may be overestimated.</li>
+        <li>pycircdb depends on source database accuracy and availability; human only.</li>
+        <li>A small fraction of coordinates fails liftOver.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Modelling</h3>
+      <ul class="t sm" style="font-size:17px">
+        <li>Clinical metadata inconsistent across public cohorts; adjustment limited to PSA and Gleason score.</li>
+        <li>Between-study heterogeneity in calibration (<em>I</em><sup>2</sup> = 43.3%).</li>
+        <li>Small external validation cohort; retrospective design.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Biological</h3>
+      <ul class="t sm" style="font-size:17px">
+        <li>2D monoculture LNCaP models omit stromal, immune and hypoxic context and lineage plasticity.</li>
+        <li>Causal roles of network members were not tested experimentally.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023, 2026; thesis Chapter 6.</p>
+  <aside class="notes"><p>~0.75 min. Distinguish limitations that bound the claims (modelling, biological) from those that bound the tools (computational).</p></aside>
+</section>
+
+<section class="slide" data-sec="disc" data-min="0.75" data-title="Future directions">
+  <p class="kicker">Chapter 6 &middot; Discussion</p>
+  <h1>Future directions</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>Computational</h3>
+      <ul class="t sm">
+        <li>A long-read circRNA workflow within nf-core (isoCirc, CIRI-long, circFL-seq) to reconstruct full-length circular transcripts without reference-guided imputation.</li>
+        <li>Extension of pycircdb to model organisms, and to single-cell and spatial circRNA data.</li>
+        <li>Integration of deep-learning splicing predictors (JEDI, CIRI-deep).</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Clinical and biological</h3>
+      <ul class="t sm">
+        <li>Evaluation of the signature in contemporary cohorts treated with next-generation AR signalling inhibitors.</li>
+        <li>Exosomal circRNA assays for minimally invasive monitoring.</li>
+        <li>Functional validation: CRISPR knockout, overexpression and circRNA sponge rescue experiments.</li>
+        <li>Therapeutic targeting of circRNA&ndash;miRNA axes (for example, antisense oligonucleotides directed at the BSJ).</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026; thesis Chapter 6.</p>
+  <aside class="notes"><p>~0.75 min. Prioritise: the long-read workflow addresses the main computational limitation; independent validation in contemporary cohorts addresses the main clinical one.</p></aside>
+</section>
+
+<section class="slide" data-sec="disc" data-min="0.75" data-title="Conclusions">
+  <p class="kicker">Chapter 6 &middot; Discussion</p>
+  <h1>Conclusions</h1>
+  <div class="body stack">
+    <ul class="t">
+      <li>circRNA detection and annotation from short-read data are method-dependent; consensus-based, containerised workflows and harmonised annotation improve reproducibility.</li>
+      <li>nf-core/circrna and pycircdb provide portable infrastructure for quantification, miRNA target prediction, differential expression and multi-database annotation.</li>
+      <li>Constraining feature selection with a circRNA&ndash;miRNA&ndash;mRNA network yielded a 23-gene signature associated with five-year biochemical recurrence, with moderate discrimination and between-cohort heterogeneity.</li>
+      <li>The findings are consistent with a regulatory role for the ceRNA network in enzalutamide resistance; prospective validation and functional experiments are required.</li>
+    </ul>
+    <p class="t muted" style="margin-top:18px">Thank you. Questions are welcome.</p>
+  </div>
+  <p class="refs">Digby et al., 2023, 2024, 2026.</p>
+  <aside class="notes"><p>~0.75 min. Close on the one-sentence version of the thesis: purpose-built, reproducible computational methods for circRNA analysis, applied to identify a network-derived prognostic signature in prostate cancer.</p></aside>
+</section>
+
+<!-- ============================ SUPPLEMENTARY SLIDES (not timed) ============================ -->
+
+<section class="slide" data-sec="appendix" data-min="0" data-title="S1 · Chapter 3: metrics worked example">
+  <p class="kicker">Supplementary &middot; Chapter 3</p>
+  <h1>Evaluation metrics: worked example and design considerations</h1>
+  <div class="body c2">
+    <div class="col">
+      <h3>CIRCexplorer2 (thesis Table 3.3)</h3>
+      <p class="eq">Precision = 6,259 / 6,270 = 99.82%<br>Sensitivity = 6,259 / 7,267 = 86.13%<br>F1 = 2(0.9982)(0.8613) / (0.9982 + 0.8613) = 92.47%</p>
+      <p class="t sm muted">Calls shared by &ge; 2 tools (<code>--tool_filter 2</code>): precision 99.83%, sensitivity 96.12%, F1 97.94%.</p>
+    </div>
+    <div class="col">
+      <h3>Design considerations</h3>
+      <ul class="t sm" style="font-size:17px">
+        <li>Strict coordinate definition: a correct call with shifted coordinates counts as a false positive for all tools; rankings are robust, absolute precision conservative.</li>
+        <li>Truth set from circRNADb (computational predictions).</li>
+        <li>RT template switching, RNase R bias and repeat or paralog mapping artefacts are not simulated.</li>
+        <li>One tissue, read length and coverage.</li>
+        <li>Tool selection for <em>C. elegans</em> was informed by a human simulation.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2023.</p>
+  <aside class="notes"><p>Backup for questions on evaluation design.</p></aside>
+</section>
+
+<section class="slide" data-sec="appendix" data-min="0" data-title="S2 · Chapter 3: computational performance">
+  <p class="kicker">Supplementary &middot; Chapter 3</p>
+  <h1>Computational performance of nf-core/circrna on PRJNA742881</h1>
+  <div class="body c2" style="grid-template-columns:1fr 1fr">
+    <figure style="--fh:455px">
+      <img src="../Chapter2/Figures/figure4.png" alt="Per-process run time and memory">
+      <figcaption>Thesis Figure 3.4. (A) Time elapsed per process (min). (B) Memory per process (GB).</figcaption>
+    </figure>
+    <ul class="t sm">
+      <li>Most memory-intensive processes: find_circ and CIRIquant alignment (38.26 and 37.37 GB); all others &lt; 10 GB.</li>
+      <li>Mean run time of MapSplice and CIRIquant alignment steps: 209 and 139 min.</li>
+      <li>The annotation script averaged 131 min and scales with the number of candidates; <code>--bsj_filter</code> reduces this.</li>
+      <li>DCC failed with 120 GB of RAM on this dataset (very high coverage).</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2023.</p>
+  <aside class="notes"><p>Backup for questions on scalability.</p></aside>
+</section>
+
+<section class="slide" data-sec="appendix" data-min="0" data-title="S3 · Chapter 3: pairwise concordance">
+  <p class="kicker">Supplementary &middot; Chapter 3</p>
+  <h1>Proportion of common candidates between quantification tools (simulated dataset)</h1>
+  <div class="body c2" style="grid-template-columns:1.2fr .8fr">
+    <figure style="--fh:440px">
+      <img src="../Chapter2/Figures/figure5.png" alt="Pairwise proportion of common circRNA candidates between tools">
+      <figcaption>Thesis Figure 3.5. Cell (row, column): proportion of the column tool&rsquo;s candidates also detected by the row tool.</figcaption>
+    </figure>
+    <ul class="t sm">
+      <li>CIRCexplorer2, CIRIquant, find_circ and MapSplice showed high mutual agreement and high precision.</li>
+      <li>Segemehl recovered a low proportion of other tools&rsquo; candidates (conservative).</li>
+      <li>DCC produced many candidates not covered by other tools, consistent with its 75.55% precision.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2023; metric as defined in Zeng et al., 2017.</p>
+  <aside class="notes"><p>Backup.</p></aside>
+</section>
+
+<section class="slide" data-sec="appendix" data-min="0" data-title="S4 · Chapter 4: one-to-many liftOver example">
+  <p class="kicker">Supplementary &middot; Chapter 4</p>
+  <h1>One-to-many hg19&ndash;hg38 mapping retained by pycircdb</h1>
+  <div class="body c2" style="grid-template-columns:1.1fr .9fr">
+    <div class="col" style="display:flex;flex-direction:column;gap:10px">
+      <figure style="--fh:90px"><img src="../Chapter4/Figures/Supp_Figure_1a.png" alt="UCSC liftOver results"><figcaption>liftOver results for chr10:47121120-47122996|&minus;.</figcaption></figure>
+      <figure style="--fh:120px"><img src="../Chapter4/Figures/Supp_Figure_1b.png" alt="pycircdb lookup table"><figcaption>pycircdb lookup table retaining both hg38 mappings under one hg19 key.</figcaption></figure>
+      <figure style="--fh:100px"><img src="../Chapter4/Figures/Supp_Figure_1c.png" alt="circAtlas entry"><figcaption>circAtlas entry confirming one of the hg38 mappings.</figcaption></figure>
+    </div>
+    <ul class="t sm">
+      <li>Forward liftOver (hg19&rarr;hg38) returns a single coordinate.</li>
+      <li>Reverse liftOver shows two hg38 coordinates mapping to the same hg19 locus, reflecting a segmental duplication present in hg38 but collapsed in hg19.</li>
+      <li>pycircdb runs the reverse liftOver from each hg38-native entry and retains both mappings.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted), thesis Figure 4.S1.</p>
+  <aside class="notes"><p>Backup for questions on liftOver handling.</p></aside>
+</section>
+
+<section class="slide" data-sec="appendix" data-min="0" data-title="S5 · Chapter 4: database overlap">
+  <p class="kicker">Supplementary &middot; Chapter 4</p>
+  <h1>Pairwise circRNA overlap between pycircdb lookup tables (hg38)</h1>
+  <div class="body c2" style="grid-template-columns:1.15fr .85fr">
+    <figure style="--fh:440px">
+      <img src="../Chapter4/Figures/Supp_Figure_3.png" alt="Pairwise hg38 overlap heatmap between databases">
+      <figcaption>Thesis Figure 4.S3. Percentage of row database circRNAs also present in the column database.</figcaption>
+    </figure>
+    <ul class="t sm">
+      <li>circBank contains 99.7% of circBase (Jaccard 11.1%); circAtlas and circBank overlap almost completely (Jaccard 92.2%).</li>
+      <li>CIRCpedia and CSCD overlap by 423,292 circRNAs (Jaccard 12.8%).</li>
+      <li>Most other pairs have Jaccard indices below 25%: no single database is comprehensive.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2026 (accepted), thesis Table 4.S4.</p>
+  <aside class="notes"><p>Backup for questions on the value of integrating multiple databases.</p></aside>
+</section>
+
+<section class="slide" data-sec="appendix" data-min="0" data-title="S6 · Chapter 5: survival cohorts">
+  <p class="kicker">Supplementary &middot; Chapter 5</p>
+  <h1>Survival cohorts used for model development and external validation</h1>
+  <div class="body c2" style="grid-template-columns:1.1fr .9fr">
+    <table class="tbl sm">
+      <tr><th>Cohort</th><th>Series</th><th class="n">BCR events / total</th></tr>
+      <tr><td>Belfast</td><td>GSE116918</td><td class="n">56 / 248</td></tr>
+      <tr><td>CIT</td><td>GSE54460</td><td class="n">13 / 77</td></tr>
+      <tr><td>CMap</td><td>GSE94767</td><td class="n">58 / 200</td></tr>
+      <tr><td>CPC</td><td>GSE107299</td><td class="n">36 / 99</td></tr>
+      <tr><td>DKFZ</td><td>EGAS00001002923</td><td class="n">24 / 105</td></tr>
+      <tr><td>GSE54460</td><td>GSE54460</td><td class="n">40 / 91</td></tr>
+      <tr><td>Stockholm</td><td>GSE70769</td><td class="n">45 / 92</td></tr>
+      <tr><td>TCGA</td><td>TCGA-PRAD</td><td class="n">99 / 463</td></tr>
+      <tr><td>Taylor</td><td>GSE21034</td><td class="n">27 / 131</td></tr>
+      <tr class="hl"><td>GSE46602 (validation)</td><td>GSE46602</td><td class="n">14 / 36</td></tr>
+    </table>
+    <div class="col">
+      <p class="t sm">Sample sizes are reported after removing patients with missing BCR information. Expression data from PCaDB (log2 CPM), centred and scaled; duplicate gene identifiers collapsed to the highest-variance entry.</p>
+    </div>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review), thesis Table 5.S3.</p>
+  <aside class="notes"><p>Check before the viva: the derivation rows sum to 1,506 patients, whereas the Discussion and abstract-level text quote n = 1,451; GSE46602 is 14/36 here but 22 events among 36 patients in the Results text. The CIT and GSE54460 rows share the accession GSE54460; confirm whether the cohorts overlap.</p></aside>
+</section>
+
+<section class="slide" data-sec="appendix" data-min="0" data-title="S7 · Chapter 5: calibration curves">
+  <p class="kicker">Supplementary &middot; Chapter 5</p>
+  <h1>Calibration of the prognostic model in the derivation dataset</h1>
+  <div class="body c2" style="grid-template-columns:1.1fr .9fr">
+    <figure style="--fh:445px">
+      <img src="../Chapter3/Figures/Supp_Figure1.png" alt="Calibration curves at 1, 3 and 5 years">
+      <figcaption>Thesis Figure 5.S1. Calibration curves at 1, 3 and 5 years.</figcaption>
+    </figure>
+    <ul class="t sm">
+      <li>Curves lie below the identity line at low predicted probabilities (overestimation of absolute risk) and cross above it at higher probabilities (underestimation).</li>
+      <li>The model therefore ranks patients (discrimination) better than it estimates absolute risk; recalibration would be required before any absolute-risk use.</li>
+    </ul>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review).</p>
+  <aside class="notes"><p>Backup for questions on calibration versus discrimination.</p></aside>
+</section>
+
+<section class="slide" data-sec="appendix" data-min="0" data-title="S8 · Chapter 5: differential expression contrasts">
+  <p class="kicker">Supplementary &middot; Chapter 5</p>
+  <h1>Differentially expressed RNAs per contrast</h1>
+  <div class="body c2">
+    <table class="tbl xs">
+      <tr><th>Type</th><th>Series</th><th>Contrast</th><th class="n">Up</th><th class="n">Down</th></tr>
+      <tr><td>circRNA</td><td>GSE113153</td><td>Gleason high vs low</td><td class="n">2,608</td><td class="n">1,979</td></tr>
+      <tr><td>circRNA</td><td>GSE118959</td><td>Clone 1 vs control</td><td class="n">591</td><td class="n">729</td></tr>
+      <tr><td>circRNA</td><td>GSE118959</td><td>Clone 9 vs control</td><td class="n">20</td><td class="n">74</td></tr>
+      <tr><td>miRNA</td><td>GSE21036</td><td>Tumour vs normal</td><td class="n">153</td><td class="n">145</td></tr>
+      <tr><td>miRNA</td><td>GSE23022</td><td>Tumour vs normal</td><td class="n">17</td><td class="n">8</td></tr>
+      <tr><td>miRNA</td><td>GSE36803</td><td>Tumour vs normal</td><td class="n">36</td><td class="n">92</td></tr>
+      <tr><td>miRNA</td><td>GSE45604</td><td>Tumour vs normal</td><td class="n">22</td><td class="n">67</td></tr>
+      <tr><td>miRNA</td><td>GSE46738</td><td>Tumour vs normal</td><td class="n">68</td><td class="n">68</td></tr>
+      <tr><td>miRNA</td><td>GSE312115</td><td>Clone 1 vs control</td><td class="n">146</td><td class="n">110</td></tr>
+      <tr><td>miRNA</td><td>GSE312115</td><td>Clone 9 vs control</td><td class="n">4</td><td class="n">1</td></tr>
+      <tr><td>miRNA</td><td>TCGA-PRAD</td><td>Tumour vs normal</td><td class="n">130</td><td class="n">128</td></tr>
+    </table>
+    <table class="tbl xs">
+      <tr><th>Type</th><th>Series</th><th>Contrast</th><th class="n">Up</th><th class="n">Down</th></tr>
+      <tr><td>mRNA</td><td>GSE143408</td><td>ENZ 7 d vs 0 d</td><td class="n">3,829</td><td class="n">3,458</td></tr>
+      <tr><td>mRNA</td><td>GSE143408</td><td>ENZ 14 d vs 0 d</td><td class="n">5,693</td><td class="n">4,792</td></tr>
+      <tr><td>mRNA</td><td>GSE143408</td><td>ENZ 21 d vs 0 d</td><td class="n">6,128</td><td class="n">4,977</td></tr>
+      <tr><td>mRNA</td><td>GSE78201</td><td>ENZ 6 months vs control</td><td class="n">518</td><td class="n">571</td></tr>
+      <tr><td>mRNA</td><td>GSE88752</td><td>ENZ-resistant vs sensitive</td><td class="n">3,564</td><td class="n">2,942</td></tr>
+      <tr><td>mRNA</td><td>LNCaP</td><td>Clone 1 vs control</td><td class="n">4,686</td><td class="n">4,379</td></tr>
+      <tr><td>mRNA</td><td>LNCaP</td><td>Clone 9 vs control</td><td class="n">1,420</td><td class="n">1,303</td></tr>
+      <tr><td>mRNA</td><td>TCGA-PRAD</td><td>Tumour vs normal</td><td class="n">3,860</td><td class="n">4,506</td></tr>
+      <tr class="hl"><td colspan="3">Unique overlapping circRNA / miRNA / mRNA</td><td class="n">168 / 16 / 691</td><td class="n">64 / 26 / 619</td></tr>
+    </table>
+  </div>
+  <p class="refs">Digby et al., 2026 (under review), thesis Table 5.1. ENZ: enzalutamide.</p>
+  <aside class="notes"><p>Backup for questions on the differential expression inputs to the network.</p></aside>
+</section>
+
+</div><!-- /stage -->
+</div><!-- /viewport -->
+
+<div id="notes" aria-live="polite"></div>
+<div id="overview" aria-label="Slide overview"><div id="overview-body"></div></div>
+
+<footer id="hud">
+  <div id="progress"><i></i></div>
+  <div class="hud-row">
+    <span id="actchip"></span>
+    <span id="status"></span>
+    <span class="spacer"></span>
+    <button type="button" id="btn-prev" aria-label="Previous">&#9664;</button>
+    <span id="counter"></span>
+    <button type="button" id="btn-next" aria-label="Next">&#9654;</button>
+    <button type="button" id="btn-timer" title="Start or pause timer (T). Starts when you leave the title slide. Reset: Shift+R.">&#9201; <span id="clock">00:00</span></button>
+    <button type="button" id="btn-notes" title="Speaker notes (N)">Notes</button>
+    <button type="button" id="btn-overview" title="Overview (O)">Overview</button>
+    <button type="button" id="btn-full" title="Full screen (F)">Full screen</button>
+  </div>
+</footer>
+
+<noscript>This presentation requires JavaScript.</noscript>
+<script src="charts.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

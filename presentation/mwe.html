@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>circRNA tools and a ceRNA prognostic signature | thesis talk (minimal example)</title>
+<!--
+  Thesis chapter numbering (as printed in each file) vs. folder names:
+    Introduction/ = Ch1   Chapter1/ = Ch2 (review)   Chapter2/ = Ch3 (nf-core/circrna)
+    Chapter4/     = Ch4 (pycircdb)   Chapter3/ = Ch5 (ceRNA signature)   Discussion/ = Ch6
+  Figures are loaded from the thesis folders via relative paths, so keep this file in thesis/presentation/.
+-->
+<style>
+:root{
+  --ink:#16263a; --muted:#5d6d7e; --line:#dbe3ea;
+  --accent:#0b6e8a; --accent-soft:#e4f3f7;
+  --warn:#d9593d; --warn-soft:#fbebe7;
+  --ok:#2f9e6b; --ok-soft:#e5f5ed;
+  --act-hook:#0b6e8a; --act-diagnose:#d9593d; --act-build:#2f9e6b; --act-apply:#6a4fb3; --act-close:#b9850a;
+  --hud:40px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#0f1b2a;color:var(--ink);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif}
+
+#viewport{position:absolute;inset:0 0 var(--hud) 0}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;background:#fff;
+  transform-origin:center center;box-shadow:0 10px 40px rgba(0,0,0,.45);overflow:hidden}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;display:none;flex-direction:column;gap:18px;
+  padding:48px 72px 40px;border-top:8px solid var(--act,var(--accent))}
+.slide.active{display:flex;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.slide[data-act=hook]{--act:var(--act-hook)}
+.slide[data-act=diagnose]{--act:var(--act-diagnose)}
+.slide[data-act=build]{--act:var(--act-build)}
+.slide[data-act=apply]{--act:var(--act-apply)}
+.slide[data-act=close]{--act:var(--act-close)}
+.notes{display:none}
+
+.eyebrow{margin:0;font-size:16px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--act)}
+h1{margin:0;font-size:42px;line-height:1.15;font-weight:700;letter-spacing:-.01em}
+.lead{margin:0;font-size:23px;line-height:1.4;color:var(--muted);max-width:1000px}
+.cols{display:grid;gap:28px;flex:1;min-height:0}
+.card{border:1px solid var(--line);border-radius:14px;padding:22px 26px;background:#fff}
+.card h2{margin:0 0 10px;font-size:26px}
+.small{font-size:16px;color:var(--muted)}
+
+.frag{opacity:0;transform:translateY(10px);transition:opacity .35s ease,transform .35s ease;pointer-events:none}
+.frag.shown{opacity:1;transform:none;pointer-events:auto}
+
+/* title */
+.slide.title{justify-content:space-between}
+.title .logo{height:64px;width:auto;align-self:flex-start}
+.title h1{font-size:54px;max-width:1000px}
+.title .byline{display:flex;flex-direction:column;gap:4px;font-size:19px;color:var(--muted)}
+.title .byline strong{font-size:28px;color:var(--ink)}
+
+/* pitch */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+.stat b{display:block;font-size:44px;line-height:1.1;color:var(--act)}
+.stat span{font-size:17px;color:var(--muted)}
+.timeline{display:flex;gap:6px;margin-top:auto}
+.seg{min-width:0;border-radius:8px;padding:10px 12px;border-top:6px solid var(--c);
+  background:color-mix(in srgb,var(--c) 11%,white)}
+.seg b{display:block;font-size:22px}
+.seg span{display:block;font-size:15px;font-weight:600;line-height:1.25}
+.seg small{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.25}
+
+/* problem */
+.bignum{font-size:76px;font-weight:700;line-height:1;color:var(--warn)}
+.bignum small{font-size:30px;color:var(--muted);font-weight:500}
+.meter{height:26px;border-radius:13px;background:var(--warn-soft);overflow:hidden;margin:16px 0 10px}
+.meter i{display:block;height:100%;width:16.84%;background:var(--warn)}
+.idlist{margin:14px 0 0;padding:0;list-style:none;font-family:Consolas,"Courier New",monospace;font-size:19px}
+.idlist li{display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.idlist li span:first-child{font-family:"Segoe UI",system-ui,sans-serif;color:var(--muted)}
+.banner{border-radius:12px;padding:14px 22px;font-size:22px;background:var(--warn-soft);border-left:8px solid var(--warn)}
+
+/* figures + chips */
+.figure{border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;background:#fff}
+.figure img{display:block;margin:0 auto;max-width:100%;max-height:370px;width:auto}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.chip{border-radius:12px;padding:14px 18px;background:var(--ok-soft);border-left:6px solid var(--ok);font-size:19px;line-height:1.3}
+.chip b{display:block;font-size:26px}
+
+/* consensus chart */
+.toggle{display:flex;gap:8px;margin:0 0 12px;align-items:center}
+.toggle span{font-size:16px;color:var(--muted);margin-right:4px}
+button{font:inherit;cursor:pointer}
+.toggle button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 16px;font-size:16px;color:var(--ink)}
+.toggle button[aria-pressed=true]{background:var(--act);border-color:var(--act);color:#fff}
+.rows{position:relative;height:calc(8*46px)}
+.row{position:absolute;left:0;right:0;height:42px;display:grid;grid-template-columns:200px 1fr 84px;gap:12px;align-items:center;
+  transition:transform .5s ease}
+.row .name{font-size:18px;white-space:nowrap}
+.track{height:24px;background:#eef2f6;border-radius:6px;overflow:hidden}
+.fill{height:100%;width:0;background:var(--accent);border-radius:6px;transition:width .5s ease}
+.row.warn .fill{background:var(--warn)}
+.row.ok .fill{background:var(--ok)}
+.row.ok .name{font-weight:700}
+.val{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;font-size:18px}
+#chart-detail{min-height:26px;margin-top:8px;font-size:16px;color:var(--muted)}
+.points{margin:0;padding-left:22px;font-size:20px;line-height:1.4}
+.points li{margin-bottom:12px}
+
+/* ceRNA funnel */
+.sponge{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.sponge div{display:flex;align-items:center;gap:8px;font-size:20px}
+.node{padding:6px 12px;border-radius:8px;background:var(--accent-soft);font-weight:600;white-space:nowrap}
+.node.dn{background:var(--warn-soft)}
+.inh{font-size:26px;color:var(--muted)}
+.funnel{display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center}
+.step{border-left:6px solid var(--act);background:color-mix(in srgb,var(--act) 9%,white);border-radius:8px;padding:10px 18px}
+.step b{display:block;font-size:26px}
+.step span{display:block;font-size:16px;color:var(--muted)}
+.step.final{background:var(--ok-soft);border-left-color:var(--ok)}
+.step.final b{color:var(--ok)}
+
+/* validation */
+.cards4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.metric{border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:#fff}
+.metric b{display:block;font-size:34px;color:var(--act);line-height:1.1}
+.metric span{font-size:15px;color:var(--muted);line-height:1.3;display:block;margin-top:4px}
+
+/* takeaways */
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.takeaway{border:1px solid var(--line);border-top:6px solid var(--c);border-radius:12px;padding:20px 22px}
+.takeaway .tag{font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.takeaway h2{margin:6px 0 8px;font-size:26px;line-height:1.2}
+.takeaway p{margin:0;font-size:19px;line-height:1.45;color:var(--muted)}
+.next{font-size:19px;color:var(--muted);margin-top:auto}
+.next b{color:var(--ink)}
+
+/* ---------- HUD, notes, overview ---------- */
+#hud{position:fixed;left:0;right:0;bottom:0;height:var(--hud);background:#0b1522;color:#c9d6e2;font-size:14px}
+#progress{height:3px;background:#1d2d42}
+#progress i{display:block;height:100%;width:0;background:#4cc0de;transition:width .25s ease}
+.hud-row{display:flex;align-items:center;gap:10px;height:calc(var(--hud) - 3px);padding:0 14px}
+.hud-row .spacer{flex:1}
+#hud button{background:transparent;border:1px solid #2a3d55;color:#c9d6e2;border-radius:6px;padding:3px 10px;font-size:13px}
+#hud button:hover{background:#17283d}
+#actchip{display:inline-flex;align-items:center;gap:6px}
+#actchip::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ac,#4cc0de)}
+#status.behind{color:#ffb199}
+#status.ahead{color:#8fd3ff}
+#status.ok{color:#9be3bd}
+#clock{font-variant-numeric:tabular-nums}
+
+#notes{position:fixed;left:0;right:0;bottom:var(--hud);max-height:32vh;overflow:auto;display:none;
+  background:rgba(11,21,34,.96);color:#e8eef4;padding:14px 28px;font-size:18px;line-height:1.5}
+#notes.on{display:block}
+#notes p{margin:0 0 8px}
+
+#overview{position:fixed;inset:0;display:none;background:rgba(11,21,34,.97);padding:32px;overflow:auto;z-index:10}
+#overview.on{display:block}
+#overview .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+#overview button{text-align:left;background:#14243a;border:1px solid #2a3d55;border-top:5px solid var(--c);color:#e8eef4;
+  border-radius:10px;padding:14px 16px;font-size:18px;min-height:96px}
+#overview button small{display:block;color:#8fa3b8;font-size:13px;margin-bottom:6px}
+#overview button.cur{outline:2px solid #4cc0de}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{overflow:visible;background:#fff}
+  #viewport{position:static}
+  #stage{position:static;width:auto;height:auto;transform:none!important;box-shadow:none}
+  .slide{display:flex!important;position:relative;width:1280px;height:720px;page-break-after:always;animation:none}
+  .frag{opacity:1!important;transform:none!important}
+  #hud,#notes,#overview{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div id="viewport">
+<div id="stage">
+
+<!-- 1 · Title -->
+<section class="slide title" data-act="hook" data-title="Title">
+  <img class="logo" src="../University_of_Galway_logo_2022.png" alt="University of Galway">
+  <div>
+    <p class="eyebrow">PhD in Genomics Data Science</p>
+    <h1>Computational approaches to the analysis of circular RNAs</h1>
+    <p class="lead">Bioinformatic tool development and applications in understanding drug-resistant prostate cancer</p>
+  </div>
+  <div class="byline">
+    <strong>Barry Digby</strong>
+    <span>Supervisors: Dr Pilib &Oacute; Broin &middot; Prof. Stephen P. Finn</span>
+    <span>School of Mathematical and Statistical Sciences &middot; Institute for Health Discovery and Innovation, University of Galway</span>
+  </div>
+  <aside class="notes"><p>~1 min. Introduce yourself and the one-sentence version of the thesis: I built the missing infrastructure for circRNA analysis, then used it to ask a clinical question about prostate cancer.</p></aside>
+</section>
+
+<!-- 2 · The pitch -->
+<section class="slide" data-act="hook" data-title="The pitch">
+  <p class="eyebrow">The pitch</p>
+  <h1>Can circular RNAs predict which prostate cancers will come back?</h1>
+  <p class="lead">Answering that reproducibly meant fixing the tooling first. The thesis does both.</p>
+  <div class="stats">
+    <div class="stat"><b>~35%</b><span>of men relapse after primary treatment (biochemical recurrence)</span></div>
+    <div class="stat"><b>20&ndash;40%</b><span>are intrinsically resistant to enzalutamide; all acquire resistance in time</span></div>
+    <div class="stat"><b>~1%</b><span>circRNA abundance relative to poly(A) RNA: stable, but hard to detect reliably</span></div>
+  </div>
+  <div class="timeline" id="timeline" aria-label="Time budget"></div>
+  <aside class="notes"><p>~3 min. Open with the question, not the tools. Context (Ch1, Ch5 intro): ~35% of men have biochemical recurrence after primary treatment; enzalutamide resistance is intrinsic in 20&ndash;40% and acquired in everyone eventually.</p><p>circRNAs are covalently closed, so they resist exonucleases (roughly 2.5x the half-life of linear RNA) and travel in exosomes: attractive biomarkers. But they are ~1% of the poly(A) pool and the tooling was unreliable. Walk the 40-minute plan along the bar: problem, tools, application, impact.</p></aside>
+</section>
+
+<!-- 3 · The problem -->
+<section class="slide" data-act="diagnose" data-title="Tools and names disagree">
+  <p class="eyebrow">Act I &middot; The problem &middot; Ch 2</p>
+  <h1>Five popular circRNA tools, five different answers</h1>
+  <div class="cols" style="grid-template-columns:1fr 1fr">
+    <div class="card">
+      <h2>Tools disagree</h2>
+      <div class="bignum">854 <small>of 5,071</small></div>
+      <div class="meter" aria-hidden="true"><i></i></div>
+      <p class="small">unique circRNAs were called by all five popular tools (Hansen et al., 2016, reviewed in Ch 2). Each approach has its own blind spots and false-positive profile.</p>
+    </div>
+    <div class="card frag">
+      <h2>Names disagree</h2>
+      <p class="small" style="margin:0">One circRNA, <code>chr1:27087346-27089776|+</code> (hg19):</p>
+      <ul class="idlist">
+        <li><span>Arraystar</span><span>ASCRP3003018</span></li>
+        <li><span>circAtlas</span><span>hsa-ARID1A_0002</span></li>
+        <li><span>circBank</span><span>hsa_ARID1A_0003300</span></li>
+        <li><span>circBase</span><span>hsa_circ_0006913</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="banner frag"><b>Consequence:</b> no standard pipeline, no standard identifiers, so circRNA signals are hard to reproduce, let alone model.</div>
+  <aside class="notes"><p>~4 min total for Act I (this slide ~2 min). Two failure modes. (1) Detection: only 854 of 5,071 circRNAs were found by all five tools; segmented vs pseudo-reference approaches and aligner choice drive the differences. Benchmarks (Zeng 2017, Gaffo 2022, Vromman 2023) agree: multi-tool consensus is the pragmatic answer.</p><p>(2) Annotation: the same circRNA has four unrelated identifiers across databases, built on different genome assemblies and 0-/1-based conventions. This sets up both tools in Act II.</p></aside>
+</section>
+
+<!-- 4 · nf-core/circrna architecture -->
+<section class="slide" data-act="build" data-title="nf-core/circrna: architecture">
+  <p class="eyebrow">Act II &middot; Build &middot; Ch 3</p>
+  <h1>nf-core/circrna: one command, three analysis modules</h1>
+  <div class="figure"><img src="../Chapter2/Figures/figure1.png" alt="nf-core/circrna analysis modules: discovery, miRNA prediction, differential expression"></div>
+  <div class="chips">
+    <div class="chip"><b>7 tools</b>quantification with consensus filtering</div>
+    <div class="chip"><b>Portable</b>Nextflow DSL2, containers, laptop to HPC to cloud; 18 species</div>
+    <div class="chip"><b>&lt;19 h</b>6 <i>C. elegans</i> samples: 4,435 published + 2,420 new circRNAs</div>
+  </div>
+  <aside class="notes"><p>~3 min of ~8 for this chapter. Three modules: discovery (7 quantification tools, BSJ and consensus filtering, annotation), miRNA prediction (miRanda + TargetScan, both must agree), differential expression (DESeq2, plus CircTest for circular-to-linear ratios).</p><p>Engineering story: built to nf-core standards (CI testing, pinned containers, peer review). Demo: re-analysed a published C. elegans dataset (PRJNA742881) in 18 h 21 m on an 8-CPU / 60 GB SLURM allocation; recovered 4,435 published circRNAs and found 2,420 more.</p></aside>
+</section>
+
+<!-- 5 · Consensus (interactive) -->
+<section class="slide" data-act="build" data-title="Consensus beats any single tool">
+  <p class="eyebrow">Act II &middot; Build &middot; Ch 3</p>
+  <h1>Consensus beats every single tool</h1>
+  <div class="cols" style="grid-template-columns:1.75fr 1fr">
+    <div>
+      <div class="toggle" role="group" aria-label="Metric">
+        <span>Rank by</span>
+        <button type="button" data-metric="f" aria-pressed="true">F1</button>
+        <button type="button" data-metric="p" aria-pressed="false">Precision</button>
+        <button type="button" data-metric="s" aria-pressed="false">Sensitivity</button>
+      </div>
+      <div class="rows" id="rows"></div>
+      <div id="chart-detail">Hover a bar for run time and memory. Simulated glioblastoma dataset, 7,267 circRNAs.</div>
+    </div>
+    <ul class="points">
+      <li>Six of seven tools are precise (&ge;97%); sensitivity ranges <b>63&ndash;92%</b>.</li>
+      <li>Requiring &ge;2 tools to agree gives <b>99.8% precision, 96.1% sensitivity</b>.</li>
+      <li>Sweet spot: <b>3 tools, agreement of 2</b> (F1 97.8%); more tools add cost, not accuracy.</li>
+      <li><b>DCC</b> (STAR 2-pass) adds false positives: 75.55% precision.</li>
+    </ul>
+  </div>
+  <aside class="notes"><p>~3 min. Click through the three metrics: precision is uniformly high except DCC; sensitivity is where single tools differ and where consensus wins. Consensus here means a circRNA is kept if at least two tools call it (--tool_filter 2).</p><p>Combinatorial analysis over all tool subsets showed an F1 inflection at three tools with filter 2 (e.g. CIRCexplorer2 + CIRIquant + Segemehl: precision 98.5%, sensitivity 97.2%, F1 97.8%). Sets that include DCC score significantly worse. Practical guidance for users, from data.</p></aside>
+</section>
+
+<!-- 6 · ceRNA funnel -->
+<section class="slide" data-act="apply" data-title="Biology as a feature filter">
+  <p class="eyebrow">Act III &middot; Apply &middot; Ch 5</p>
+  <h1>Use regulatory biology, not brute force, to choose features</h1>
+  <div class="cols" style="grid-template-columns:360px 1fr">
+    <div>
+      <p class="lead" style="font-size:20px">The ceRNA hypothesis predicts how three RNA types move together:</p>
+      <div class="sponge">
+        <div><span class="node">circRNA &uarr;</span><span class="inh">&#8867;</span><span class="node dn">miRNA &darr;</span><span class="inh">&#8867;</span><span class="node">mRNA &uarr;</span></div>
+        <div><span class="node dn">circRNA &darr;</span><span class="inh">&#8867;</span><span class="node">miRNA &uarr;</span><span class="inh">&#8867;</span><span class="node dn">mRNA &darr;</span></div>
+      </div>
+      <p class="small">Only triplets whose expression moves as the hypothesis predicts survive, in both prostate tumours and enzalutamide-resistant LNCaP cells.</p>
+    </div>
+    <div class="funnel">
+      <div class="step frag" style="width:100%"><b>232 &middot; 42 &middot; 1,310</b><span>DE circRNAs &middot; miRNAs &middot; mRNAs, shared across cancer and resistance contrasts</span></div>
+      <div class="step frag" style="width:90%"><b>1,090 mRNAs</b><span>predicted targets of the 42 miRNAs</span></div>
+      <div class="step frag" style="width:80%"><b>124 &middot; 38 &middot; 817</b><span>after the ceRNA inverse-expression filter</span></div>
+      <div class="step frag" style="width:70%"><b>681 predictors</b><span>679 network mRNAs in survival cohorts + Gleason + PSA</span></div>
+      <div class="step final frag" style="width:60%"><b>23 genes</b><span>CoxBoost, then proportional-hazards check</span></div>
+    </div>
+  </div>
+  <aside class="notes"><p>~4 min of ~12 for this chapter. Click to step through the funnel (not to scale). The key idea: high-dimensional transcriptomics with few events overfits; the ceRNA network is a biologically motivated prior that shrinks 1,310 candidates to 817 before any survival modelling.</p><p>Data: 2 circRNA, 7 miRNA and 5 mRNA datasets, including in-house enzalutamide-resistant LNCaP clones (Clone 1 highly, Clone 9 moderately resistant). Modelling: CoxBoost with min/max steps chosen to keep 15&ndash;50 events per predictor; 26 non-zero coefficients, 3 removed for violating proportional hazards, leaving 23 genes.</p></aside>
+</section>
+
+<!-- 7 · Validation -->
+<section class="slide" data-act="apply" data-title="Does it hold up?">
+  <p class="eyebrow">Act III &middot; Apply &middot; Ch 5</p>
+  <h1>Moderate discrimination, validated and reported honestly</h1>
+  <div class="figure"><img src="../Chapter3/Figures/Figure_3.png" alt="Kaplan-Meier curves and time-dependent ROC in the external validation cohort" style="max-height:340px"></div>
+  <div class="cards4">
+    <div class="metric"><b>0.73 &rarr; 0.68</b><span>Harrell's C, apparent vs. optimism-corrected (200 bootstraps)</span></div>
+    <div class="metric"><b>C = 0.71</b><span>external cohort (GSE46602): 36 patients, 22 BCR events, wide CIs</span></div>
+    <div class="metric"><b>AUC 0.87</b><span>time-dependent, 5 years (0.67 at 1 year, 0.78 at 3 years)</span></div>
+    <div class="metric"><b>2 of 23</b><span>genes shared with 30 published signatures (SFRP4, BGN)</span></div>
+  </div>
+  <aside class="notes"><p>~4 min. Lead with the honest number: apparent C-index 0.73 drops to 0.68 after optimism correction, and I report both. Then internal-external cross-validation across nine cohorts (n = 1,451): pooled calibration slope 1.61 with moderate heterogeneity (I&sup2; = 43%); discrimination heterogeneity not detectable.</p><p>External validation (GSE46602) is small: C = 0.71, 5-year AUC 0.87, but 36 patients so intervals are wide. Several published signatures score higher in that cohort (Long: 0.98) but only 2 of 23 genes overlap with any of them, which is the discovery argument. Expect viva questions on calibration and sample size.</p></aside>
+</section>
+
+<!-- 8 · Takeaways -->
+<section class="slide" data-act="close" data-title="What it adds up to">
+  <p class="eyebrow">Impact &middot; Ch 6</p>
+  <h1>What this adds up to</h1>
+  <div class="cards3">
+    <div class="takeaway" style="--c:var(--act-build)"><div class="tag">Workflow &middot; Ch 3</div><h2>Reproducible consensus calling</h2><p>nf-core/circrna turns a fragmented tool landscape into one containerised, portable workflow with data-driven defaults.</p></div>
+    <div class="takeaway" style="--c:var(--act-build)"><div class="tag">Annotation &middot; Ch 4</div><h2>One lookup for nine databases</h2><p>pycircdb normalises coordinates to 0-based and annotates 300,000 circRNAs in about a minute on a workstation.</p></div>
+    <div class="takeaway" style="--c:var(--act-apply)"><div class="tag">Biology &middot; Ch 5</div><h2>A network-derived signature</h2><p>A 23-gene BCR signature, rigorously validated and largely distinct from published panels.</p></div>
+  </div>
+  <p class="next"><b>Next:</b> long-read full-length circRNA workflows &middot; prospective validation &middot; exosomal liquid-biopsy assays</p>
+  <aside class="notes"><p>~2 min, then questions. Tie it back to the opening question: infrastructure first, then a clinical application whose validation is reported with its limitations (short-read BSJ limits, database longevity, 2D cell models, small external cohort).</p></aside>
+</section>
+
+</div><!-- /stage -->
+</div><!-- /viewport -->
+
+<div id="notes" aria-live="polite"></div>
+
+<div id="overview" aria-label="Slide overview"><div class="grid" id="overview-grid"></div></div>
+
+<footer id="hud">
+  <div id="progress"><i></i></div>
+  <div class="hud-row">
+    <span id="actchip"></span>
+    <span id="status"></span>
+    <span class="spacer"></span>
+    <button type="button" id="btn-prev" aria-label="Previous">&#9664;</button>
+    <span id="counter"></span>
+    <button type="button" id="btn-next" aria-label="Next">&#9654;</button>
+    <button type="button" id="btn-timer" title="Start or pause timer (T). Starts automatically when you leave the title slide. Reset: Shift+R.">&#9201; <span id="clock">00:00</span></button>
+    <button type="button" id="btn-notes" title="Speaker notes (N)">Notes</button>
+    <button type="button" id="btn-overview" title="Overview (O)">Overview</button>
+    <button type="button" id="btn-full" title="Full screen (F)">Full screen</button>
+  </div>
+</footer>
+
+<noscript>This presentation needs JavaScript.</noscript>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ---------- time budget (minutes) ---------- */
+  const ACTS = [
+    { id: 'hook',     label: 'Why it matters',     chapters: 'Ch 1 · Introduction',               min: 5 },
+    { id: 'diagnose', label: 'The problem',        chapters: 'Ch 2 · Review',                     min: 4 },
+    { id: 'build',    label: 'The tools',          chapters: 'Ch 3–4 · nf-core/circrna, pycircdb', min: 14 },
+    { id: 'apply',    label: 'The application',    chapters: 'Ch 5 · ceRNA signature',            min: 12 },
+    { id: 'close',    label: 'Impact & next steps', chapters: 'Ch 6 · Discussion',                 min: 5 },
+  ];
+  let cursor = 0;
+  ACTS.forEach(a => { a.start = cursor; cursor += a.min; a.end = cursor; });
+  const TOTAL_MIN = cursor;
+  const actById = Object.fromEntries(ACTS.map(a => [a.id, a]));
+  const actColor = id => `var(--act-${id})`;
+
+  document.getElementById('timeline').innerHTML = ACTS.map(a =>
+    `<div class="seg" style="flex:${a.min};--c:${actColor(a.id)}"><b>${a.min} min</b><span>${a.label}</span><small>${a.chapters}</small></div>`
+  ).join('');
+
+  /* ---------- deck ---------- */
+  const stage = document.getElementById('stage');
+  const slides = [...document.querySelectorAll('.slide')];
+  const notesEl = document.getElementById('notes');
+  const overviewEl = document.getElementById('overview');
+  const $ = id => document.getElementById(id);
+  let idx = 0;
+
+  const fragsOf = s => [...s.querySelectorAll('.frag')];
+
+  function fit() {
+    const s = Math.min(innerWidth / 1280, (innerHeight - 40) / 720);
+    stage.style.transform = `translate(-50%,-50%) scale(${s})`;
+  }
+
+  function show(i, revealAll = false) {
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, k) => {
+      const on = k === idx;
+      s.classList.toggle('active', on);
+      s.setAttribute('aria-hidden', String(!on));
+    });
+    fragsOf(slides[idx]).forEach(f => f.classList.toggle('shown', revealAll));
+    history.replaceState(null, '', '#' + (idx + 1));
+    $('counter').textContent = `${idx + 1} / ${slides.length}`;
+    document.querySelector('#progress i').style.width = `${((idx + 1) / slides.length) * 100}%`;
+    const note = slides[idx].querySelector('.notes');
+    notesEl.innerHTML = note ? note.innerHTML : '';
+    updateHud();
+  }
+
+  function next() {
+    const cur = slides[idx];
+    const hidden = fragsOf(cur).find(f => !f.classList.contains('shown'));
+    if (hidden) { hidden.classList.add('shown'); return; }
+    if (idx < slides.length - 1) {
+      if (idx === 0 && !running && acc === 0) startTimer();
+      show(idx + 1);
+    }
+  }
+
+  function prev() {
+    const shown = fragsOf(slides[idx]).filter(f => f.classList.contains('shown'));
+    if (shown.length) { shown[shown.length - 1].classList.remove('shown'); return; }
+    if (idx > 0) show(idx - 1, true);
+  }
+
+  /* ---------- timer + schedule status ---------- */
+  let acc = 0, t0 = null, running = false;
+  const elapsedMs = () => acc + (running ? performance.now() - t0 : 0);
+  const fmt = ms => {
+    const s = Math.floor(ms / 1000), m = Math.floor(s / 60);
+    return String(m).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  };
+  function startTimer() { if (!running) { t0 = performance.now(); running = true; } }
+  function pauseTimer() { if (running) { acc += performance.now() - t0; running = false; } }
+  function resetTimer() { acc = 0; t0 = null; running = false; updateHud(); }
+
+  function updateHud() {
+    const act = actById[slides[idx].dataset.act];
+    const chip = $('actchip');
+    chip.style.setProperty('--ac', getComputedStyle(document.documentElement).getPropertyValue(`--act-${act.id}`));
+    chip.textContent = `${act.label} · plan ${act.start}–${act.end} of ${TOTAL_MIN} min`;
+    const el = elapsedMs();
+    $('clock').textContent = fmt(el);
+    const status = $('status');
+    if (el < 1000) { status.textContent = ''; status.className = ''; return; }
+    const min = el / 60000;
+    if (min > act.end)        { status.textContent = `behind by ${fmt((min - act.end) * 60000)}`; status.className = 'behind'; }
+    else if (min < act.start) { status.textContent = `ahead by ${fmt((act.start - min) * 60000)}`; status.className = 'ahead'; }
+    else                      { status.textContent = 'on track'; status.className = 'ok'; }
+  }
+  setInterval(updateHud, 500);
+
+  /* ---------- notes, overview, fullscreen ---------- */
+  const toggleNotes = () => notesEl.classList.toggle('on');
+  const toggleFull = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+
+  function buildOverview() {
+    $('overview-grid').innerHTML = slides.map((s, k) =>
+      `<button type="button" data-i="${k}" style="--c:${actColor(s.dataset.act)}"><small>${k + 1} · ${actById[s.dataset.act].label}</small>${s.dataset.title}</button>`
+    ).join('');
+  }
+  function toggleOverview(force) {
+    const on = force ?? !overviewEl.classList.contains('on');
+    overviewEl.classList.toggle('on', on);
+    if (on) overviewEl.querySelectorAll('button').forEach(b => b.classList.toggle('cur', +b.dataset.i === idx));
+  }
+  overviewEl.addEventListener('click', e => {
+    const b = e.target.closest('button[data-i]');
+    if (b) { show(+b.dataset.i); toggleOverview(false); }
+  });
+
+  /* ---------- input ---------- */
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const onButton = !!(e.target.closest && e.target.closest('button'));
+    switch (e.key) {
+      case 'ArrowRight': case 'PageDown': e.preventDefault(); next(); break;
+      case ' ': case 'Enter': if (onButton) return; e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': show(0); break;
+      case 'End': show(slides.length - 1, true); break;
+      case 'n': case 'N': toggleNotes(); break;
+      case 'o': case 'O': toggleOverview(); break;
+      case 'Escape': toggleOverview(false); break;
+      case 'f': case 'F': toggleFull(); break;
+      case 't': running ? pauseTimer() : startTimer(); updateHud(); break;
+      case 'R': resetTimer(); break;
+    }
+  });
+  document.addEventListener('click', e => { const b = e.target.closest('button'); if (b) b.blur(); });
+  $('btn-prev').onclick = prev;
+  $('btn-next').onclick = next;
+  $('btn-notes').onclick = toggleNotes;
+  $('btn-overview').onclick = () => toggleOverview();
+  $('btn-full').onclick = toggleFull;
+  $('btn-timer').onclick = () => { running ? pauseTimer() : startTimer(); updateHud(); };
+
+  let sx = null;
+  addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 60) (dx < 0 ? next : prev)();
+    sx = null;
+  });
+  addEventListener('resize', fit);
+  addEventListener('hashchange', () => {
+    const n = parseInt(location.hash.slice(1), 10);
+    if (Number.isFinite(n) && n - 1 !== idx) show(n - 1);
+  });
+
+  /* ---------- interactive: per-tool performance vs. consensus (thesis Ch 3, Table 3.2) ---------- */
+  const DATA = [
+    { name: 'CIRCexplorer2',        p: 99.82, s: 86.13, f: 92.47, t: '7 min',  m: '20 GB' },
+    { name: 'CIRIquant',            p: 99.93, s: 91.69, f: 95.63, t: '13 min', m: '65 GB' },
+    { name: 'circRNA_finder',       p: 97.18, s: 82.52, f: 89.25, t: '7 min',  m: '20 GB' },
+    { name: 'DCC',                  p: 75.55, s: 87.30, f: 81.00, t: '34 min', m: '21 GB', cls: 'warn' },
+    { name: 'find_circ',            p: 99.76, s: 85.34, f: 91.99, t: '6 min',  m: '3 GB' },
+    { name: 'MapSplice',            p: 99.97, s: 84.67, f: 91.69, t: '9 min',  m: '6 GB' },
+    { name: 'Segemehl',             p: 97.92, s: 62.72, f: 76.46, t: '6 min',  m: '50 GB' },
+    { name: 'Consensus (≥2 tools)', p: 99.83, s: 96.12, f: 97.94, cls: 'ok' },
+  ];
+  const METRIC_LABEL = { p: 'precision', s: 'sensitivity', f: 'F1' };
+  const ROW_H = 46;
+  const rowsEl = $('rows');
+  const detailEl = $('chart-detail');
+  const DETAIL_DEFAULT = detailEl.textContent;
+  let metric = 'f';
+
+  DATA.forEach(d => {
+    const row = document.createElement('div');
+    row.className = 'row ' + (d.cls || '');
+    row.tabIndex = 0;
+    row.innerHTML = `<span class="name"></span><div class="track"><div class="fill"></div></div><span class="val"></span>`;
+    row.querySelector('.name').textContent = d.name;
+    const showDetail = () => {
+      detailEl.textContent = `${d.name}: precision ${d.p.toFixed(2)}%, sensitivity ${d.s.toFixed(2)}%, F1 ${d.f.toFixed(2)}%` +
+        (d.t ? ` · ${d.t} · ${d.m} RAM` : ' · combined calls from all seven tools');
+    };
+    row.addEventListener('mouseenter', showDetail);
+    row.addEventListener('focus', showDetail);
+    row.addEventListener('mouseleave', () => { detailEl.textContent = DETAIL_DEFAULT; });
+    row.addEventListener('blur', () => { detailEl.textContent = DETAIL_DEFAULT; });
+    rowsEl.appendChild(row);
+    d.el = row;
+  });
+
+  function renderChart() {
+    [...DATA].sort((a, b) => b[metric] - a[metric]).forEach((d, rank) => {
+      d.el.style.transform = `translateY(${rank * ROW_H}px)`;
+      d.el.querySelector('.fill').style.width = d[metric] + '%';
+      d.el.querySelector('.val').textContent = d[metric].toFixed(2) + '%';
+    });
+  }
+  document.querySelectorAll('.toggle button').forEach(b => b.addEventListener('click', () => {
+    metric = b.dataset.metric;
+    document.querySelectorAll('.toggle button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    renderChart();
+  }));
+
+  /* ---------- boot ---------- */
+  buildOverview();
+  renderChart();
+  fit();
+  const start = parseInt(location.hash.slice(1), 10);
+  show(Number.isFinite(start) ? start - 1 : 0);
+})();
+</script>
+</body>
+</html>
