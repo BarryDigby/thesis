@@ -3,13 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Viva presentation | Computational approaches to the analysis of circular RNAs</title>
+<title>Research showcase | Computational approaches to the analysis of circular RNAs</title>
 <!--
   Chapter numbers follow the headings printed in the thesis; folder names differ:
     Introduction/ = Ch1 | Chapter1/ = Ch2 (review) | Chapter2/ = Ch3 (nf-core/circrna)
     Chapter4/ = Ch4 (pycircdb) | Chapter3/ = Ch5 (ceRNA signature) | Discussion/ = Ch6
   Figures are read from the thesis folders, so keep this file in thesis/presentation/.
-  Each slide's data-min is its planned duration; the values sum to 40 minutes (supplementary slides are 0).
+  The showcase is planned for 24 minutes. Original detailed slides are retained
+  inside #viva-detail and treated by deck.js as untimed viva backup.
+  Each showcase slide has a planned duration in data-min and delivery notes.
 -->
 <link rel="stylesheet" href="deck.css">
 </head>
@@ -18,6 +20,262 @@
 <div id="viewport">
 <div id="stage">
 
+<!-- ============================ RESEARCH SHOWCASE (24 min) ============================ -->
+
+<section class="slide title showcase" data-sec="intro" data-min="0.25" data-title="Computational approaches to circular RNAs">
+  <img class="logo" src="../University_of_Galway_logo_2022.png" alt="University of Galway">
+  <div>
+    <p class="kicker">PhD research showcase &middot; Genomics Data Science</p>
+    <h1>Computational approaches to the analysis of circular RNAs</h1>
+    <p class="lead">Bioinformatic tool development and applications in understanding drug-resistant prostate cancer</p>
+  </div>
+  <div class="by"><strong>Barry Digby</strong>Supervisor: Dr Pilib &Oacute; Broin &middot; Co-supervisor: Prof. Stephen P. Finn<br>University of Galway</div>
+  <aside class="notes"><p>15 seconds. My thesis connects a clinical question in prostate cancer with the computational infrastructure needed to study circular RNAs. This is a 24-minute showcase: introduction 3 minutes, review 2, nf-core/circrna 5, pycircdb 4.5, prognostic modelling 7.5, and closing 2. Detailed material follows the thank-you slide as untimed viva backup.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="intro" data-min="0.75" data-title="The clinical challenge: treatment resistance">
+  <p class="kicker">Introduction &middot; Prostate cancer</p>
+  <h1>Prostate cancer can escape androgen-targeted treatment</h1>
+  <div class="body visual-split">
+    <div class="col">
+      <div class="story-card"><h3>Androgen receptor signalling</h3><p>Drives prostate cancer growth</p></div>
+      <div class="story-arrow">&darr;</div>
+      <div class="story-card"><h3>Enzalutamide</h3><p>Blocks androgen receptor signalling</p></div>
+      <div class="story-arrow">&darr;</div>
+      <div class="story-card emphasis"><h3>Resistance</h3><p>Disease progresses despite treatment</p></div>
+    </div>
+    <figure class="hero-figure"><img src="../Introduction/Figures/AR_mutations.png" alt="Genetic alterations across localised and metastatic prostate cancer states"><figcaption>Thesis Figure 1.4 &middot; Changing molecular landscape across disease states; Rebello et al., 2021.</figcaption></figure>
+  </div>
+  <aside class="notes"><p>45 seconds. Prostate cancer is one of the most frequently diagnosed cancers in men. The androgen receptor is a central therapeutic target. Enzalutamide improves survival in advanced disease, but resistance remains a major clinical challenge. Use the figure to convey molecular evolution, not to enumerate mutations. The resistance models in this thesis provide a biological context for identifying candidate RNA networks.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="intro" data-min="0.5" data-title="BCR: the clinical endpoint">
+  <p class="kicker">Introduction &middot; Clinical endpoint</p>
+  <h1>Biochemical recurrence is a measurable signal of relapse</h1>
+  <div class="body stack">
+    <div class="journey"><div class="story-card"><h3>Primary treatment</h3><p>PSA falls after prostatectomy</p></div><span class="connector">&rarr;</span><div class="story-card emphasis"><h3>PSA rises again</h3><p>Biochemical recurrence (BCR)</p></div><span class="connector">&rarr;</span><div class="story-card"><h3>Prognostic question</h3><p>Who is more likely to recur?</p></div></div>
+    <div class="definition"><strong>BCR after radical prostatectomy</strong><p>A confirmed rise in prostate-specific antigen (PSA) above 0.2 ng/mL.</p></div>
+    <p class="takeaway">Can RNA biology help identify patients at higher risk of recurrence?</p>
+  </div>
+  <p class="refs">Thesis Chapter 1; Amling et al., 2001. BCR definitions vary across retrospective cohorts.</p>
+  <aside class="notes"><p>30 seconds. Define BCR before using the acronym: a rise in PSA following primary treatment, with the definition shown specific to radical prostatectomy. It is an earlier biochemical endpoint, not synonymous with metastatic progression or enzalutamide resistance. Later, the thesis tests whether a resistance-informed RNA network carries prognostic information for this endpoint.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="intro" data-min="0.75" data-title="Why circular RNAs?">
+  <p class="kicker">Introduction &middot; Circular RNAs</p>
+  <h1>Circular RNAs connect RNA stability with regulatory biology</h1>
+  <div class="body visual-split">
+    <figure class="hero-figure"><img src="../Chapter1/Figures/Figure1.png" alt="Back-splicing and circular RNA biogenesis"><figcaption>Thesis Figure 2.1 &middot; Circular RNA biogenesis.</figcaption></figure>
+    <div class="col"><div class="story-card"><h3>Distinctive structure</h3><p>Back-splicing creates a covalently closed RNA loop</p></div><div class="story-card"><h3>Biomarker potential</h3><p>Stable and detectable in biofluids</p></div><div class="story-card emphasis"><h3>ceRNA hypothesis</h3><p>CircRNAs may bind miRNAs and alter repression of target mRNAs</p></div></div>
+  </div>
+  <p class="refs">Salzman et al., 2012; Hansen et al., 2013; Salmena et al., 2011; Digby et al., 2024.</p>
+  <aside class="notes"><p>45 seconds. Explain a back-splice junction as the downstream splice donor joining an upstream acceptor. The closed structure gives stability. Introduce competing endogenous RNA, or ceRNA: competition for shared miRNAs may influence mRNA abundance. This is a hypothesis used to construct candidate networks, not evidence that every circRNA acts as a sponge. With circRNA profiling less widely available than mRNA profiling, its association with prostate cancer outcome remains incompletely understood.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="intro" data-min="0.75" data-title="Thesis aims: detect, annotate, apply">
+  <p class="kicker">Thesis aims</p>
+  <h1>From reliable circRNA analysis to a clinical research question</h1>
+  <div class="body stack">
+    <div class="aim-grid"><div class="aim-card"><span class="chapter-tag">Chapter 3</span><h2>Detect</h2><p>How can circRNA analysis be made reproducible and accessible?</p><strong>nf-core/circrna</strong></div><div class="aim-card"><span class="chapter-tag">Chapter 4</span><h2>Annotate</h2><p>How can fragmented circRNA knowledge be connected?</p><strong>pycircdb</strong></div><div class="aim-card"><span class="chapter-tag">Chapter 5</span><h2>Apply</h2><p>Can a resistance-informed ceRNA network identify a BCR-associated gene signature?</p><strong>Prognostic modelling</strong></div></div>
+    <p class="takeaway">Chapter 2 maps the computational challenges that motivated the work.</p>
+  </div>
+  <aside class="notes"><p>45 seconds. State the research questions, rather than reciting a contents page. First establish which computational barriers exist. Then build reproducible detection and integrated annotation tools. Finally apply network-guided analysis to the prostate cancer question. These are complementary contributions; the prognostic analysis is not presented as a single end-to-end execution of the two tools.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="review" data-min="0.75" data-title="Review: mapping the computational landscape">
+  <p class="kicker">Chapter 2 &middot; Review &middot; BMC Genomics, 2024</p>
+  <h1>What makes circRNA analysis computationally challenging?</h1>
+  <div class="body visual-split">
+    <figure class="hero-figure"><img src="../Chapter1/Figures/Figure2.png" alt="Library preparation, alignment and validation strategies for circRNA detection"><figcaption>Thesis Figure 2.2 &middot; From library preparation to circRNA detection.</figcaption></figure>
+    <div class="col"><div class="story-card"><h3>Signal</h3><p>Low abundance and library preparation shape what can be detected</p></div><div class="story-card"><h3>Detection</h3><p>Different algorithms return different circRNA sets</p></div><div class="story-card"><h3>Interpretation</h3><p>Identifiers and annotations differ across databases</p></div></div>
+  </div>
+  <aside class="notes"><p>45 seconds. My review brought together the experimental and computational choices that determine an analysis. Focus on three practical barriers: capturing the signal, detecting it consistently, and connecting it to biological knowledge. Do not review every library protocol or algorithm.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="review" data-min="0.75" data-title="Review: two priorities for tool development">
+  <p class="kicker">Chapter 2 &middot; Key synthesis</p>
+  <h1>The review identified two practical priorities</h1>
+  <div class="body two-panels">
+    <div class="feature-panel"><span class="big-number">1</span><h2>Combine complementary evidence</h2><p>Benchmarking studies show substantial disagreement between detection tools.</p><div class="answer">Automate multi-tool consensus</div></div>
+    <div class="feature-panel"><span class="big-number">24</span><h2>Connect fragmented resources</h2><p>CircRNA databases catalogued, with heterogeneous identifiers and coordinates.</p><div class="answer">Harmonise annotation and access</div></div>
+  </div>
+  <p class="refs">Digby et al., 2024; Hansen et al., 2016; Gaffo et al., 2022; Vromman et al., 2023.</p>
+  <aside class="notes"><p>45 seconds. The contribution of the review was a synthesis that informed tool development. Consensus can reduce dependence on a single caller. Database harmonisation can make the resulting circRNAs interpretable. The 24 is the number of databases catalogued in the review, not the number integrated in pycircdb.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="review" data-min="0.5" data-title="Review to workflow: closing the first question">
+  <p class="kicker">Chapter 2 &middot; Answer and transition</p>
+  <h1>The methods existed; reproducible integration was the opportunity</h1>
+  <div class="body stack"><div class="question-banner"><span>Review question</span><p>Can existing approaches support reliable circRNA analysis?</p></div><p class="answer-large">Complementary methods are valuable &mdash; but combining them consistently requires infrastructure.</p><div class="next-question"><span>Next research question &middot; Chapter 3</span><p>Can we take raw reads through multi-tool detection and downstream analysis in one portable workflow?</p></div></div>
+  <aside class="notes"><p>30 seconds. Close the review question: no single algorithm or database removes all of the analytical challenges. This motivated reproducible integration rather than another isolated caller. Transition directly to the workflow developed in Chapter 3.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="nfcore" data-min="0.5" data-title="nf-core/circrna: the research question">
+  <p class="kicker">Chapter 3 &middot; nf-core/circrna &middot; BMC Bioinformatics, 2023</p>
+  <h1>One portable workflow, from sequencing reads to circRNA biology</h1>
+  <div class="body stack"><div class="question-banner"><span>Research question</span><p>How can multi-tool circRNA analysis be made reproducible and accessible?</p></div><div class="journey"><div class="story-card"><h3>Raw reads</h3><p>Paired-end sequencing</p></div><span class="connector">&rarr;</span><div class="story-card emphasis"><h3>nf-core/circrna</h3><p>Containerised Nextflow workflow</p></div><span class="connector">&rarr;</span><div class="story-card"><h3>Biological outputs</h3><p>Counts, targets and expression</p></div></div><p class="takeaway">A reusable research tool, not a bespoke analysis script.</p></div>
+  <aside class="notes"><p>30 seconds. Introduce my contribution as the integration of circRNA quantification, miRNA target prediction and differential expression in a single workflow, with nf-core engineering standards. It wraps established methods; the new work is the portable integration and evidence-based guidance.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="nfcore" data-min="0.75" data-title="nf-core/circrna: workflow design">
+  <p class="kicker">Chapter 3 &middot; Methods</p>
+  <h1>Modular analysis with reproducibility built in</h1>
+  <div class="body stack"><figure class="hero-figure wide-figure"><img src="../Chapter2/Figures/figure1.png" alt="nf-core/circrna workflow: discovery, miRNA prediction and differential expression"><figcaption>Thesis Figure 3.1 &middot; Workflow architecture.</figcaption></figure><div class="pill-row"><span>Up to 7 detection tools</span><span>Versioned containers</span><span>Local &middot; HPC &middot; Cloud</span></div></div>
+  <aside class="notes"><p>45 seconds. Walk left to right through the figure once. Reads enter the discovery module. Optional modules predict miRNA targets and analyse differential expression. Containers pin the software environment; Nextflow separates analysis logic from execution infrastructure. Avoid listing aligners, dependencies or command-line flags.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="nfcore" data-min="1" data-title="nf-core/circrna: consensus performance">
+  <p class="kicker">Chapter 3 &middot; Results &middot; Simulation benchmark</p>
+  <h1>Multi-tool consensus combined high precision with high sensitivity</h1>
+  <div class="body stack"><div class="metric-grid"><div class="metric"><strong>99.83<span>%</span></strong><p>Precision</p></div><div class="metric"><strong>96.12<span>%</span></strong><p>Sensitivity</p></div><div class="metric"><strong>97.94<span>%</span></strong><p>F1 score</p></div></div><div class="definition"><strong>Consensus: detected by at least two tools</strong><p>Evaluated against 7,267 simulated circRNAs; at least two back-splice junction reads per call.</p></div><p class="takeaway">Evidence-based guidance for combining circRNA callers.</p></div>
+  <p class="refs">Digby et al., 2023 &middot; Thesis Table 3.3. Performance is specific to the simulated dataset.</p>
+  <aside class="notes"><p>60 seconds. Briefly define precision as the proportion of calls that are correct, and sensitivity as the proportion of simulated circRNAs recovered. My evaluation compared individual callers and combinations. Consensus across the seven-tool pool achieved these values. The combinatorial analysis also showed that three complementary tools with support from two could achieve strong F1 performance at lower computational cost; do not conflate that result with these full-pool consensus numbers.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="nfcore" data-min="1" data-title="nf-core/circrna: published-data demonstration">
+  <p class="kicker">Chapter 3 &middot; Results &middot; Published-data re-analysis</p>
+  <h1>Recovering published findings and expanding the candidate set</h1>
+  <div class="body visual-split"><figure class="hero-figure"><img src="../Chapter2/Figures/figure2.png" alt="Overlap between nf-core/circrna calls and the original C. elegans study"><figcaption>Thesis Figure 3.2 &middot; Six <em>C. elegans</em> samples, PRJNA742881.</figcaption></figure><div class="col"><div class="metric compact"><strong>4,435</strong><p>CircRNAs shared with the original study</p></div><div class="metric compact"><strong>2,420</strong><p>Additional circRNA candidates</p></div><p class="caption-note">A reproducible re-analysis, with new candidates for follow-up.</p></div></div>
+  <p class="refs">Digby et al., 2023; Cao et al., 2021. Additional calls are computational candidates, not experimentally validated circRNAs.</p>
+  <aside class="notes"><p>60 seconds. Move from simulation to a published dataset: wild type and fust-1 mutant, three replicates each. The re-analysis recovered a large shared circRNA set and yielded additional candidates. Point to the overlap and distribution rather than reading each panel. This demonstrates application and reproducibility, not proof that additional calls are all true.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="nfcore" data-min="1" data-title="nf-core/circrna: interpretable outputs">
+  <p class="kicker">Chapter 3 &middot; Results &middot; From counts to interpretation</p>
+  <h1>Analysis-ready outputs in a single execution</h1>
+  <div class="body stack"><figure class="hero-figure wide-figure"><img src="../Chapter2/Figures/figure3.png" alt="Differential expression outputs showing heatmap, PCA and volcano plot"><figcaption>Thesis Figure 3.3 &middot; Differential expression heatmap, sample relationships and volcano plot.</figcaption></figure><div class="pill-row"><span>CircRNA count matrices</span><span>miRNA target predictions</span><span>Differential expression</span></div></div>
+  <aside class="notes"><p>60 seconds. These outputs show what a researcher receives, rather than another benchmark. Point out the heatmap, PCA and volcano plot. Linear host-gene information is incorporated into the expression analysis, and target predictions connect the detected circRNAs with a possible regulatory role. Emphasise reduced manual hand-offs and an analysis that can be rerun.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="nfcore" data-min="0.75" data-title="nf-core/circrna: answer and next question">
+  <p class="kicker">Chapter 3 &middot; Answer and transition</p>
+  <h1>A reproducible route from reads to candidate circRNAs</h1>
+  <div class="body stack"><div class="answer-large">Containerised multi-tool consensus provides reproducible circRNA quantification, with benchmark-derived default parameters.</div><div class="pill-row"><span>Integrated</span><span>Reproducible</span><span>nf-core standards</span></div><div class="next-question"><span>Next research question &middot; Chapter 4</span><p>Once a circRNA is detected, how do we connect it to knowledge spread across different databases?</p></div></div>
+  <aside class="notes"><p>45 seconds. Answer the opening question explicitly. Consensus calling within a containerised workflow makes the analysis reproducible and accessible without requiring users to connect every tool themselves. Detection alone is not interpretation. The next chapter addresses a different, complementary bottleneck: connecting circRNA coordinates to existing annotation.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="pycircdb" data-min="0.75" data-title="pycircdb: one circRNA, many names">
+  <p class="kicker">Chapter 4 &middot; pycircdb &middot; Bioinformatics Advances, accepted 2026</p>
+  <h1>One circRNA can have many database identities</h1>
+  <div class="body stack"><div class="identity-hub"><code>chr1:27087346-27089776|+</code><span>hg19</span></div><div class="identity-grid"><div><small>Arraystar</small><strong>ASCRP3003018</strong></div><div><small>circAtlas</small><strong>hsa-ARID1A_0002</strong></div><div><small>circBank</small><strong>hsa_ARID1A_0003300</strong></div><div><small>circBase</small><strong>hsa_circ_0006913</strong></div></div><p class="takeaway">How can these identities and annotations be queried together?</p></div>
+  <p class="refs">Digby et al., 2026 (accepted) &middot; Thesis Chapter 4.</p>
+  <aside class="notes"><p>45 seconds. Use a single concrete example instead of a comparison table. This circRNA maps to different names in four databases. Different genome builds and coordinate conventions compound the problem. My research question was how to make this fragmented information available through a consistent, programmatic interface.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="pycircdb" data-min="0.75" data-title="pycircdb: harmonising the resources">
+  <p class="kicker">Chapter 4 &middot; Methods</p>
+  <h1>Harmonised coordinates connect nine resources</h1>
+  <div class="body stack"><div class="journey"><div class="story-card"><h3>9 source databases</h3><p>Identifiers, sequences and interactions</p></div><span class="connector">&rarr;</span><div class="story-card emphasis"><h3>Harmonise</h3><p>0-based coordinates<br>hg19 &harr; hg38</p></div><span class="connector">&rarr;</span><div class="story-card"><h3>Query together</h3><p>One configurable command-line interface</p></div></div><div class="database-cloud"><span>Arraystar</span><span>circAtlas</span><span>circBank</span><span>circBase</span><span>CircNet</span><span>CIRCpedia</span><span>circRNADb</span><span>CSCD</span><span>exoRBase</span></div><p class="takeaway">Versioned data and provenance make annotation reproducible.</p></div>
+  <aside class="notes"><p>45 seconds. Describe the data engineering: standardise coordinate conventions and cross-map assemblies using liftOver, retaining source identifiers and provenance. Nine resources contribute different data types; eight supply identifiers for the annotation module. Do not imply that all nine provide sequences or interaction data.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="pycircdb" data-min="0.75" data-title="pycircdb: four routes to biological context">
+  <p class="kicker">Chapter 4 &middot; Methods &middot; Software design</p>
+  <h1>From coordinates to biological context</h1>
+  <div class="body visual-split"><figure class="hero-figure"><img src="../Chapter4/Figures/Figure_1.png" alt="pycircdb input, matching and annotation modules"><figcaption>Thesis Figure 4.1 &middot; pycircdb workflow.</figcaption></figure><div class="module-grid"><div class="story-card"><h3>annotate</h3><p>Identifiers and host genes</p></div><div class="story-card"><h3>fasta</h3><p>CircRNA sequences</p></div><div class="story-card"><h3>mirna</h3><p>Predicted miRNA interactions</p></div><div class="story-card"><h3>rbp</h3><p>RNA-binding protein interactions</p></div></div></div>
+  <aside class="notes"><p>45 seconds. Walk through the figure at module level, not through its example coordinates. A user supplies circRNAs and chooses the outputs needed. Partitioned Parquet storage means only relevant data are retrieved. The workflow produces annotation and an execution report, making the evidence behind the result traceable.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="pycircdb" data-min="0.75" data-title="pycircdb: retrieval and annotation yield">
+  <p class="kicker">Chapter 4 &middot; Results &middot; Retrieval checks</p>
+  <h1>Connecting real circRNA calls to existing knowledge</h1>
+  <div class="body two-panels"><div class="feature-panel"><span class="big-number">6 / 6</span><h2>Demonstration circRNAs</h2><p>Expected identifiers retrieved from all eight annotation databases.</p></div><div class="feature-panel"><span class="big-number">&gt;97%</span><h2>Annotation yield</h2><p>For high-confidence input sets of 100, 1,000 and 10,000 circRNAs, across all four modules.</p></div></div>
+  <p class="refs">Digby et al., 2026 (accepted). High-confidence input: &ge;3 BSJ reads and support from &ge;3 of 7 quantification tools.</p>
+  <aside class="notes"><p>45 seconds. Distinguish two tests. The small demonstration checks identifier retrieval against expected database identifiers. The larger real-data inputs assess annotation yield at several input sizes. Yield is the proportion linked to database information, not an estimate of biological annotation accuracy. This is useful infrastructure for bringing detected circRNAs into biological analyses.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="pycircdb" data-min="0.75" data-title="pycircdb: scale on workstation hardware">
+  <p class="kicker">Chapter 4 &middot; Results &middot; Computational scale</p>
+  <h1>Hundreds of thousands of circRNAs, in about a minute</h1>
+  <div class="body stack"><div class="metric-grid"><div class="metric"><strong>300,000</strong><p>Input circRNAs</p></div><div class="metric"><strong>66.7<span> s</span></strong><p>Runtime</p></div><div class="metric"><strong>3.8<span> GB</span></strong><p>Peak RAM</p></div></div><div class="definition"><strong>All four modules in the reported benchmark</strong><p>Partitioned storage and selective retrieval avoid loading every database into memory.</p></div><p class="takeaway">Large-scale annotation without a dedicated database server.</p></div>
+  <p class="refs">Digby et al., 2026 (accepted) &middot; Thesis Chapter 4 benchmark. The 300,000-input set is randomly sampled; annotation yield differs from the high-confidence sets.</p>
+  <aside class="notes"><p>45 seconds. Give the scale, runtime and memory once. These numbers describe the reported benchmark, not a guarantee for every machine or input. This large random set is a scaling test, distinct from the high-confidence inputs on the preceding slide. The practical achievement is making large annotation queries feasible on workstation-class hardware.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="pycircdb" data-min="0.75" data-title="pycircdb: answer and next question">
+  <p class="kicker">Chapter 4 &middot; Answer and transition</p>
+  <h1>Fragmented circRNA knowledge becomes queryable</h1>
+  <div class="body stack"><div class="answer-large">Coordinate harmonisation across nine databases makes circRNA annotation programmatic, versioned and reproducible.</div><div class="pill-row"><span>Batch annotation</span><span>Interaction retrieval</span><span>Traceable outputs</span></div><div class="next-question"><span>Next research question &middot; Chapter 5</span><p>Can circRNA-linked regulatory networks reveal a gene signature associated with prostate cancer recurrence?</p></div></div>
+  <aside class="notes"><p>45 seconds. Close the annotation question: coordinate harmonisation allows users to connect circRNA identities, sequences and interactions without manually navigating resource-specific formats. Transition from tool development to application. The next study uses database-guided RNA interactions; do not claim that it directly ran the entire nf-core/circrna and pycircdb stack.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="cerna" data-min="0.75" data-title="ceRNA modelling: the question and cohorts">
+  <p class="kicker">Chapter 5 &middot; ceRNA prognostic modelling &middot; Scientific Reports, under review 2026</p>
+  <h1>Can resistance-informed RNA biology help predict recurrence?</h1>
+  <div class="body stack"><div class="question-banner"><span>Research question</span><p>Can a ceRNA network guide selection of a BCR-associated mRNA signature?</p></div><div class="cohort-grid"><div class="cohort-card"><span>Derivation</span><strong>1,506 <small>patients</small></strong><p>9 cohorts &middot; model development and internal&ndash;external validation</p></div><div class="cohort-card"><span>External validation</span><strong>36 <small>patients</small></strong><p>22 BCR events &middot; GSE46602<br>Fixed model coefficients</p></div></div><p class="caption-note">Sample sizes after removal of patients with missing BCR information.</p></div>
+  <p class="refs">Thesis Table 5.S3: derivation n = 248 + 77 + 200 + 99 + 105 + 91 + 92 + 463 + 131.</p>
+  <aside class="notes"><p>60 seconds. The question is whether regulatory-network information can constrain feature selection before survival modelling. State both sample sizes out loud. The derivation total is the sum of the nine cohorts in Table 5.S3. External validation uses 36 patients with 22 BCR events and fixed coefficients. CIT and GSE54460 also share a series accession in the source table; the total here follows the thesis cohort labels, not a newly verified patient-level deduplication.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="cerna" data-min="1" data-title="ceRNA modelling: from resistance to network">
+  <p class="kicker">Chapter 5 &middot; Methods and network result</p>
+  <h1>A biological network narrows the candidate gene space</h1>
+  <div class="body stack"><div class="journey"><div class="story-card"><h3>Disease + resistance</h3><p>Concordant differential expression</p></div><span class="connector">&rarr;</span><div class="story-card"><h3>Predicted interactions</h3><p>CircRNA&ndash;miRNA&ndash;mRNA</p></div><span class="connector">&rarr;</span><div class="story-card emphasis"><h3>ceRNA filtering</h3><p>Opposing changes in paired RNAs</p></div></div><div class="metric-grid network-metrics"><div class="metric"><strong>124</strong><p>CircRNAs</p></div><div class="metric"><strong>38</strong><p>miRNAs</p></div><div class="metric"><strong>817</strong><p>mRNAs</p></div></div><p class="caption-note">Inputs: 2 circRNA, 7 miRNA and 5 mRNA datasets, including in-house LNCaP expression data.</p></div>
+  <p class="refs">Digby et al., 2026 (under review) &middot; Thesis Chapter 5; small RNA-seq deposited at GSE312115.</p>
+  <aside class="notes"><p>75 seconds. Explain the biological restriction before the model. Select RNA changes shared between disease-associated and enzalutamide-resistance contrasts; the circRNA disease contrast is high versus low Gleason grade, not tumour versus normal. Connect candidates using database-guided interactions, then retain inverse directions for circRNA-miRNA and miRNA-mRNA pairs. The resulting network contains 124 circRNAs, 38 miRNAs and 817 mRNAs. This network is a feature-selection prior, not a demonstrated causal mechanism.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="cerna" data-min="0.75" data-title="ceRNA modelling: the 23-gene signature">
+  <p class="kicker">Chapter 5 &middot; Methods &middot; Model development</p>
+  <h1>Network-guided selection yielded a 23-gene signature</h1>
+  <div class="body stack"><div class="journey"><div class="story-card"><h3>679 network mRNAs</h3><p>Available across the cohorts<br>+ PSA and Gleason score</p></div><span class="connector">&rarr;</span><div class="story-card"><h3>CoxBoost</h3><p>Feature selection<br>Proportional-hazards checks</p></div><span class="connector">&rarr;</span><div class="story-card emphasis"><h3>23 genes</h3><p>Final prognostic signature</p></div></div><div class="validation-strip"><span>200 bootstrap resamples</span><span>9-cohort internal&ndash;external validation</span><span>Independent external cohort</span></div><p class="takeaway">Biology-guided feature selection, evaluated beyond the derivation fit.</p></div>
+  <aside class="notes"><p>60 seconds. Of the 817 network mRNAs, 679 were available for modelling; PSA and Gleason were also candidate predictors. CoxBoost selected 26 non-zero coefficients and proportional-hazards checks removed three, yielding 23 genes. Explain the three layers of evaluation: bootstrapping estimates optimism, holding out each cohort assesses transportability, and an independent external cohort evaluates the fixed final model. Do not suggest that the final model includes clinical predictors.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="cerna" data-min="1" data-title="ceRNA modelling: derivation performance">
+  <p class="kicker">Chapter 5 &middot; Results &middot; Derivation n = 1,506</p>
+  <h1>The signature stratified time to biochemical recurrence</h1>
+  <div class="body visual-split"><figure class="hero-figure"><img src="../Chapter3/Figures/Figure_1.png" alt="Derivation results: gene effects, recurrence-free survival and time-dependent ROC curves"><figcaption>Thesis Figure 5.1 &middot; Gene effects, Kaplan&ndash;Meier and time-dependent ROC.</figcaption></figure><div class="col"><div class="metric compact"><strong>0.73</strong><p>Apparent Harrell&rsquo;s C</p></div><div class="metric compact"><strong>0.68</strong><p>Optimism-corrected C</p></div><div class="result-note"><strong>Reported HR* 1.385</strong><p>95% CI 1.15&ndash;1.62<br>High versus low risk</p></div></div></div>
+  <p class="refs">*The reported &ldquo;HR&rdquo; is actually the log-hazard ratio (Cox coefficient), not an exponentiated HR. HR = exp(1.385) &asymp; 3.99 (95% CI 3.16&ndash;5.05). This correction concerns the risk-group summary, not the individual-gene HRs in panel A.</p>
+  <aside class="notes"><p>75 seconds. Point to separation of the recurrence-free survival curves. Apparent discrimination is 0.73, falling to about 0.68 after bootstrap optimism correction that repeats selection. Both values belong in the showcase so the result is not overstated. Read the asterisk explicitly: the value reported as HR in the thesis is a log-hazard ratio. On the conventional HR scale it is approximately four. Time-dependent AUC was 0.75 at one, three and five years.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="cerna" data-min="1.25" data-title="ceRNA modelling: external validation">
+  <p class="kicker">Chapter 5 &middot; Results &middot; External validation n = 36 &middot; 22 BCR events &middot; GSE46602</p>
+  <h1>Prognostic separation extended to an independent cohort</h1>
+  <div class="body stack"><figure class="hero-figure wide-figure"><img src="../Chapter3/Figures/Figure_3.png" alt="External validation: recurrence-free survival curves and time-dependent ROC curves for 36 patients"><figcaption>Thesis Figure 5.3 &middot; External cohort; model coefficients fixed.</figcaption></figure><div class="result-row"><div><strong>C = 0.71</strong><span>External discrimination</span></div><div><strong>AUC = 0.87</strong><span>At 5 years</span></div><div><strong>Reported HR* = 1.48</strong><span>95% CI 0.52&ndash;2.44</span></div></div></div>
+  <p class="refs">*The reported &ldquo;HR&rdquo; is actually the log-hazard ratio (Cox coefficient): HR = exp(1.48) &asymp; 4.39 (95% CI 1.68&ndash;11.47). Estimates are from a small external cohort (n = 36).</p>
+  <aside class="notes"><p>90 seconds. Stress that the model coefficients were not refitted to these 36 patients. The signature separated risk groups and achieved C of 0.71. The five-year AUC was 0.87; present it as a time-specific result from a small cohort, not a universal accuracy figure. Explain the log-hazard footnote once more if needed. The separate internal-external validation across the nine derivation cohorts also assessed transportability; detailed calibration and heterogeneity results are available in the viva backup. Close on evidence of prognostic association, not clinical readiness.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="cerna" data-min="1.25" data-title="ceRNA modelling: established biology in the signature">
+  <p class="kicker">Chapter 5 &middot; Results &middot; Signature genes</p>
+  <h1>The network recovers established prostate cancer biology</h1>
+  <div class="body stack"><div class="gene-grid"><div class="gene"><div class="gene-head"><em>SFRP4</em><span class="lfc up">&uarr; 1.40</span></div><p>Wnt pathway modulator; predicts PCa aggressiveness; component of Oncotype DX</p></div><div class="gene"><div class="gene-head"><em>BGN</em><span class="lfc up">&uarr; 1.37</span></div><p>Matrix proteoglycan; overexpression associated with BCR; used in Oncotype DX</p></div><div class="gene"><div class="gene-head"><em>BHLHE40</em><span class="lfc down">&darr; 1.95</span></div><p>Circadian repressor; circadian factors disrupted by enzalutamide in CRPC</p></div><div class="gene"><div class="gene-head"><em>PDCD4</em><span class="lfc down">&darr; 0.79</span></div><p>Tumour suppressor governing proliferation, apoptosis and castration resistance</p></div><div class="gene"><div class="gene-head"><em>NEU3</em><span class="lfc up">&uarr; 0.51</span></div><p>Sialidase inducing AR and PSA expression in LNCaP cells</p></div><div class="gene"><div class="gene-head"><em>B4GALT1</em><span class="lfc down">&darr; 0.45</span></div><p>Silenced by AKR1C3 in CRPC, facilitating progression</p></div></div><p class="takeaway">Directions of change agree with the literature; two genes feature in a commercial assay.</p></div>
+  <p class="refs">logFC in prostate cancer and enzalutamide-resistant samples (&uarr; up, &darr; down). Digby et al., 2026 (under review); Knezevic et al., 2013; Jacobsen et al., 2017; Linder et al., 2022; Zennami et al., 2019; Kawamura et al., 2012; Wang et al., 2020.</p>
+  <aside class="notes"><p>75 seconds. Use this slide to establish credibility: the network recovered genes with prior links to prostate cancer progression, castration resistance and AR signalling. SFRP4 and BGN are the only two genes shared with published signatures, and both appear in Oncotype DX. BHLHE40 connects to circadian dysregulation under enzalutamide; NEU3 to AR and PSA induction in LNCaP cells; B4GALT1 to AKR1C3-mediated silencing in CRPC. SPARC is the exception: the literature associates high expression with metastasis, whereas our network shows downregulation, which is consistent with other reports of lower expression in prostate cancer. Individual hazard ratios have confidence intervals spanning 1 and the signature acts as a multivariable index; do not present any single gene as an independent prognostic marker.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="cerna" data-min="1" data-title="ceRNA modelling: understudied candidates">
+  <p class="kicker">Chapter 5 &middot; Results &middot; Signature genes</p>
+  <h1>…and nominates understudied candidates for prostate cancer</h1>
+  <div class="body stack"><div class="gene-grid"><div class="gene novel"><div class="gene-head"><em>SS18L2</em><span class="lfc up">&uarr; 0.54</span></div><p>No prior prostate cancer reports; knockdown induces G2/M arrest and apoptosis in breast cancer cells</p></div><div class="gene novel"><div class="gene-head"><em>RBM47</em><span class="lfc up">&uarr; 0.36</span></div><p>RNA-binding tumour suppressor regulating splicing in breast and renal cancer</p></div><div class="gene novel"><div class="gene-head"><em>BTN3A1</em><span class="lfc down">&darr; 1.41</span></div><p>Immune regulator; low expression associated with worse outcome in breast and lung cancer</p></div><div class="gene novel"><div class="gene-head"><em>MTERF4</em><span class="lfc up">&uarr; 1.04</span></div><p>Mitochondrial transcription terminator; overexpression promotes proliferation in HeLa cells</p></div><div class="gene novel"><div class="gene-head"><em>RAB11FIP2</em><span class="lfc down">&darr; 0.76</span></div><p>Rab11 effector; linked to angiogenesis and poor prognosis in colorectal cancer</p></div><div class="gene novel"><div class="gene-head"><em>CNBD2</em><span class="lfc up">&uarr; 0.45</span></div><p>Prognostic marker in pancreatic cancer</p></div></div><p class="takeaway">21 of 23 genes are absent from the published signatures compared: candidates for functional follow-up.</p></div>
+  <p class="refs">logFC in prostate cancer and enzalutamide-resistant samples (&uarr; up, &darr; down). Digby et al., 2026 (under review); Liang et al., 2021; Vanharanta et al., 2014; Wang et al., 2023; Yu et al., 2011; Dong et al., 2018; Yedier-Bayram et al., 2022.</p>
+  <aside class="notes"><p>60 seconds. This is the distinctive part of the signature. Roles are drawn from other cancers or cell types, so they are hypotheses for prostate cancer, not established mechanisms. SS18L2 has no prior prostate cancer reports; upregulation in prostate cancer and enzalutamide-resistant cells with a positive association with BCR warrants follow-up. BTN3A1 points to immune regulation, RBM47 to post-transcriptional control through splicing, MTERF4 to mitochondrial gene expression. Distinct gene content, together with moderate external discrimination, supports the use of network topology as a prior for feature selection; it does not show superiority over published panels.</p></aside>
+</section>
+
+<section class="slide showcase" data-sec="cerna" data-min="0.5" data-title="ceRNA modelling: answering the question">
+  <p class="kicker">Chapter 5 &middot; Answer</p>
+  <h1>A resistance-informed network revealed a BCR-associated signature</h1>
+    <div class="body stack"><div class="answer-large">A ceRNA network shared by prostate cancer and enzalutamide resistance constrained feature selection to a 23-gene signature with prognostic signal in an independent cohort.</div><div class="aim-grid"><div class="story-card"><h3>Biological connection</h3><p>Disease- and resistance-associated RNA changes</p></div><div class="story-card"><h3>Distinct gene set</h3><p>21 of 23 genes absent from the published signatures compared</p></div><div class="story-card"><h3>Transparent evaluation</h3><p>Optimism correction, cross-cohort and external validation</p></div></div><p class="takeaway">An mRNA prognostic signature informed by circRNA biology.</p></div>
+    <aside class="notes"><p>45 seconds. Answer the research question without converting association into causation. The network guided a candidate prognostic signature that is largely distinct from published panels; distinct does not mean superior. It does not show that the circRNAs cause resistance, nor does the model directly measure circRNAs. Now bring the three contributions together.</p></aside></section>
+
+<section class="slide showcase" data-sec="disc" data-min="1.25" data-title="Thesis contributions">
+  <p class="kicker">Research contributions</p>
+  <h1>Tools to study circRNAs. A framework to connect them to outcome.</h1>
+  <div class="body stack"><div class="aim-grid"><div class="aim-card"><span class="chapter-tag">Detect</span><h2>nf-core/circrna</h2><p>Reproducible, multi-tool analysis from raw reads</p><strong>BMC Bioinformatics &middot; 2023</strong></div><div class="aim-card"><span class="chapter-tag">Annotate</span><h2>pycircdb</h2><p>Harmonised access to nine circRNA resources</p><strong>Bioinformatics Advances &middot; accepted</strong></div><div class="aim-card"><span class="chapter-tag">Apply</span><h2>ceRNA modelling</h2><p>A network-guided, 23-gene prognostic signature</p><strong>Scientific Reports &middot; under review</strong></div></div><p class="takeaway">A foundation for reproducible circRNA research, informed by a published review.</p></div>
+  <aside class="notes"><p>60 seconds. Return to the aims slide and close each loop in the same order: a reproducible workflow for detection, a harmonised interface for annotation, and a network-guided approach to prognostic gene discovery. The review, published in BMC Genomics in 2024, provided the synthesis motivating the computational work. Emphasise reusable software and a transparent analytical framework as lasting outputs. No limitations or future-work tour: those belong in the viva.</p></aside>
+</section>
+
+<section class="slide showcase title" data-sec="disc" data-min="0.75" data-title="Thank you and acknowledgements">
+  <img class="logo" src="../University_of_Galway_logo_2022.png" alt="University of Galway">
+  <div><p class="kicker">Acknowledgements</p><h1>Thank you</h1><p class="lead">Dr Pilib &Oacute; Broin &middot; Prof. Stephen P. Finn<br>Collaborators, colleagues, friends and family</p></div>
+  <div class="resource-links"><a href="https://nf-co.re/circrna">nf-co.re/circrna</a><a href="https://pypi.org/project/pycircdb/">pycircdb on PyPI</a><a href="https://github.com/BarryDigby/pca_network">Prognostic analysis code</a></div>
+  <aside class="notes"><p>60 seconds. Thank supervisors and collaborators, then colleagues, friends and family. Finish with the take-home message: computational tools can make circRNA research more reproducible, and circRNA-linked networks can provide a useful route into prognostic discovery. Stop here at 24 minutes. The next slide begins untimed viva backup; do not advance into it during the departmental showcase.</p></aside>
+</section>
+
+<!-- Original detailed deck retained for viva discussion, not part of the showcase. -->
+<div id="viva-detail">
 <!-- ============================ INTRODUCTION (4 min) ============================ -->
 
 <section class="slide title" data-sec="intro" data-min="0.5" data-title="Title">
@@ -81,7 +339,7 @@
         <li>circRNAs arise by back-splicing and form covalently closed loops that resist exonucleolytic degradation (half-life approximately 2.5-fold that of linear RNAs) and are detectable in biofluids and exosomes.</li>
         <li>Mature circRNAs carry conserved miRNA response elements and can sequester miRNAs, relieving repression of target mRNAs (ceRNA hypothesis).</li>
         <li>Several circRNAs are dysregulated in PCa, including hsa_circ_0001275 in enzalutamide-resistant LNCaP clones.</li>
-        <li>circRNA expression has not yet been used in predictive models of prostate cancer outcome, leaving an unexplored class of candidate biomarker.</li>
+        <li>With circRNA expression profiling less widely available than mRNA profiling, the association of circRNAs with prostate cancer outcome is still not well understood.</li>
       </ul>
     </div>
     <figure style="--fh:300px">
@@ -784,14 +1042,14 @@
       <figcaption>Thesis Figure 5.1. (A) Hazard ratios of the 23 retained predictors; (B) Kaplan&ndash;Meier curves by median prognostic index; (C) time-dependent ROC.</figcaption>
     </figure>
     <ul class="t sm" style="font-size:18px">
-      <li>High versus low risk: HR 1.385 (95% CI 1.15&ndash;1.62); log-rank <em>P</em> &lt; 0.0001.</li>
+      <li>High versus low risk: reported HR* 1.385 (95% CI 1.15&ndash;1.62); log-rank <em>P</em> &lt; 0.0001.</li>
       <li>Time-dependent AUC 0.75 at 1, 3 and 5 years.</li>
       <li>Harrell&rsquo;s C 0.73.</li>
       <li>Calibration slope 1.59 (1.41&ndash;1.77).</li>
       <li>Calibration curves show overestimation of risk at low predicted probabilities and underestimation at high probabilities (supplementary slides).</li>
     </ul>
   </div>
-  <p class="refs">Digby et al., 2026 (under review), thesis Figure 5.1 and Table 5.2.</p>
+  <p class="refs">Digby et al., 2026 (under review), thesis Figure 5.1 and Table 5.2. *The reported HR is actually the log-hazard ratio (Cox coefficient); exponentiating gives HR 3.99 (95% CI 3.16&ndash;5.05).</p>
   <aside class="notes"><p>~1 min. These are apparent (derivation) estimates and are optimistic by construction; the next slides quantify the optimism. No individual gene reaches a large effect: the signature acts as a multivariable index.</p><p><b>Correction to the hazard ratio:</b> the value on this slide (1.385; 95% CI 1.15&ndash;1.62) is the Cox regression coefficient, i.e. the log hazard ratio, because it was not exponentiated. The true hazard ratio for the high- versus low-risk group is exp(1.385) = 3.99 (95% CI exp(1.15) to exp(1.62) = 3.16&ndash;5.05). The reported P value (4.29e-31) is the Wald test of the coefficient against 0 (equivalent to HR = 1), so it is valid as reported; the confidence interval is the Wald interval on the log scale.</p></aside>
 </section>
 
@@ -845,14 +1103,14 @@
       <figcaption>Thesis Figure 5.3. (A) Kaplan&ndash;Meier curves by median prognostic index; (B) time-dependent ROC. GSE46602, 36 patients.</figcaption>
     </figure>
     <table class="tbl sm">
-      <tr><th></th><th>Calibration slope (95% CI)</th><th class="n">Harrell&rsquo;s C</th><th>HR, high risk (95% CI)</th><th>AUC at 1 / 3 / 5 y</th></tr>
+      <tr><th></th><th>Calibration slope (95% CI)</th><th class="n">Harrell&rsquo;s C</th><th>Reported HR*, high risk (95% CI)</th><th>AUC at 1 / 3 / 5 y</th></tr>
       <tr><td>Derivation</td><td>1.59 (1.41&ndash;1.77)</td><td class="n">0.73</td><td>1.38 (1.15&ndash;1.62)</td><td>0.75 / 0.75 / 0.75</td></tr>
       <tr><td>Validation</td><td>1.33 (0.59&ndash;2.06)</td><td class="n">0.71</td><td>1.48 (0.52&ndash;2.44)</td><td>0.67 / 0.78 / 0.87</td></tr>
     </table>
     <p class="t sm muted">The validation cohort is small, and confidence intervals are correspondingly wide.</p>
   </div>
-  <p class="refs">Digby et al., 2026 (under review), thesis Table 5.2 and Figure 5.3.</p>
-  <aside class="notes"><p>~1 min. Check before the viva: the chapter text reports 22 BCR events among 36 patients, whereas Supplementary Table 5.S3 lists 14/36. The Table 5.2 Wald P value (0.00257) differs from the log-rank P in Figure 5.3A (0.0011) because they are different tests. A 5-year AUC of 0.87 in 36 patients should be presented with that caveat.</p><p><b>Correction to the hazard ratio:</b> the validation value reported (1.48; 95% CI 0.52&ndash;2.44) is the Cox coefficient, i.e. the log hazard ratio, not exponentiated; the derivation value in the table (1.38, in Table 5.2 reported to 1.385) is the same. The true validation HR is exp(1.48) = 4.39 (95% CI 1.68&ndash;11.5), and the derivation HR is 3.99 (3.16&ndash;5.05). This also explains the interval and P value that looked inconsistent: the interval 0.52&ndash;2.44 is on the log scale, where the null value is 0, not 1, so it excludes the null. The Wald z = 1.48 / SE (SE &asymp; (2.44 &minus; 0.52) / 3.92 = 0.49) = 3.0, P = 0.0026, matching the reported 0.00257. The wide interval on the HR scale (1.7&ndash;11.5) reflects the small cohort.</p></aside>
+  <p class="refs">Digby et al., 2026 (under review), thesis Table 5.2 and Figure 5.3. *The reported HR is actually the log-hazard ratio (Cox coefficient), not an exponentiated hazard ratio.</p>
+  <aside class="notes"><p>~1 min. The external validation cohort contains 22 BCR events among 36 patients. The Table 5.2 Wald P value (0.00257) differs from the log-rank P in Figure 5.3A (0.0011) because they are different tests. A 5-year AUC of 0.87 in 36 patients should be presented with that caveat.</p><p><b>Correction to the hazard ratio:</b> the validation value reported (1.48; 95% CI 0.52&ndash;2.44) is the Cox coefficient, i.e. the log hazard ratio, not exponentiated; the derivation value in the table (1.38, in Table 5.2 reported to 1.385) is the same. The true validation HR is exp(1.48) = 4.39 (95% CI 1.68&ndash;11.5), and the derivation HR is 3.99 (3.16&ndash;5.05). This also explains the interval and P value that looked inconsistent: the interval 0.52&ndash;2.44 is on the log scale, where the null value is 0, not 1, so it excludes the null. The Wald z = 1.48 / SE (SE &asymp; (2.44 &minus; 0.52) / 3.92 = 0.49) = 3.0, P = 0.0026, matching the reported 0.00257. The wide interval on the HR scale (1.7&ndash;11.5) reflects the small cohort.</p></aside>
 </section>
 
 <section class="slide" data-sec="cerna" data-min="1" data-title="Comparison with published signatures">
@@ -1024,6 +1282,7 @@
   <aside class="notes"><p>~0.75 min. Close on the one-sentence version of the thesis: purpose-built, reproducible computational methods for circRNA analysis, applied to identify a network-derived prognostic signature in prostate cancer.</p><p>The Chapter 5 point replaces two earlier bullets. The earlier wording (&ldquo;findings are consistent with a regulatory role for the ceRNA network in enzalutamide resistance&rdquo;) was not supported by a specific result: the network is built from differential expression overlap and predicted interactions, and the model predicts BCR in cohorts that were not treated with enzalutamide, so no analysis tests regulation or resistance.</p></aside>
 </section>
 
+</div><!-- /viva-detail -->
 <!-- ============================ SUPPLEMENTARY SLIDES (not timed) ============================ -->
 
 <section class="slide" data-sec="appendix" data-min="0" data-title="S1 · Chapter 3: metrics worked example">
@@ -1139,14 +1398,14 @@
       <tr><td>Stockholm</td><td>GSE70769</td><td class="n">45 / 92</td></tr>
       <tr><td>TCGA</td><td>TCGA-PRAD</td><td class="n">99 / 463</td></tr>
       <tr><td>Taylor</td><td>GSE21034</td><td class="n">27 / 131</td></tr>
-      <tr class="hl"><td>GSE46602 (validation)</td><td>GSE46602</td><td class="n">14 / 36</td></tr>
+      <tr class="hl"><td>GSE46602 (validation)</td><td>GSE46602</td><td class="n">22 / 36</td></tr>
     </table>
     <div class="col">
       <p class="t sm">Sample sizes are reported after removing patients with missing BCR information. Expression data from PCaDB (log2 CPM), centred and scaled; duplicate gene identifiers collapsed to the highest-variance entry.</p>
     </div>
   </div>
   <p class="refs">Digby et al., 2026 (under review), thesis Table 5.S3.</p>
-  <aside class="notes"><p>Check before the viva: the derivation rows sum to 1,506 patients, whereas the Discussion and abstract-level text quote n = 1,451; GSE46602 is 14/36 here but 22 events among 36 patients in the Results text. The CIT and GSE54460 rows share the accession GSE54460; confirm whether the cohorts overlap.</p></aside>
+  <aside class="notes"><p>Check before the viva: the derivation rows sum to 1,506 patients, whereas the Discussion and abstract-level text quote n = 1,451. The CIT and GSE54460 rows share the accession GSE54460; confirm whether the cohorts overlap.</p></aside>
 </section>
 
 <section class="slide" data-sec="appendix" data-min="0" data-title="S7 · Chapter 5: calibration curves">
