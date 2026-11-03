@@ -7,13 +7,22 @@
     nfcore:   'Chapter 3 · nf-core/circrna',
     pycircdb: 'Chapter 4 · pycircdb',
     cerna:    'Chapter 5 · ceRNA signature',
-    disc:     'Chapter 6 · Discussion',
-    appendix: 'Supplementary slides (not timed)',
+    disc:     'Contributions and acknowledgements',
+    appendix: 'Viva backup (not timed)',
   };
   const secColor = id => `var(--s-${id})`;
 
   const stage = document.getElementById('stage');
+  document.querySelectorAll('#viva-detail .slide').forEach(slide => {
+    slide.dataset.sec = 'appendix';
+    slide.dataset.min = '0';
+    slide.dataset.title = 'Detail · ' + slide.dataset.title;
+    const kicker = slide.querySelector('.kicker');
+    if (kicker) kicker.textContent = 'Viva backup · ' + kicker.textContent;
+  });
   const slides = [...document.querySelectorAll('.slide')];
+  const mainSlides = slides.filter(slide => slide.dataset.sec !== 'appendix');
+  const backupSlides = slides.filter(slide => slide.dataset.sec === 'appendix');
   const notesEl = document.getElementById('notes');
   const overviewEl = document.getElementById('overview');
   const $ = id => document.getElementById(id);
@@ -73,8 +82,11 @@
     });
     fragsOf(slides[idx]).forEach(f => f.classList.toggle('shown', revealAll));
     history.replaceState(null, '', '#' + (idx + 1));
-    $('counter').textContent = `${idx + 1} / ${slides.length}`;
-    document.querySelector('#progress i').style.width = `${((idx + 1) / slides.length) * 100}%`;
+    const backup = slides[idx].dataset.sec === 'appendix';
+    $('counter').textContent = backup
+      ? `Backup ${backupSlides.indexOf(slides[idx]) + 1} / ${backupSlides.length}`
+      : `${mainSlides.indexOf(slides[idx]) + 1} / ${mainSlides.length}`;
+    document.querySelector('#progress i').style.width = `${Math.min((idx + 1) / mainSlides.length, 1) * 100}%`;
     const note = slides[idx].querySelector('.notes');
     notesEl.innerHTML = note ? note.innerHTML : '';
     updateTicker();
@@ -109,7 +121,7 @@
     const el = elapsedMs();
     $('clock').textContent = fmt(el);
     $('actchip').textContent = s._min > 0
-      ? `${SECTIONS[sec]} · slide plan ${fmt(s._start * 60000)}–${fmt(s._end * 60000)} of ${TOTAL_MIN}:00`
+      ? `${SECTIONS[sec]} · slide plan ${fmt(s._start * 60000)}–${fmt(s._end * 60000)} of ${fmt(TOTAL_MIN * 60000)}`
       : SECTIONS[sec];
     const st = $('status');
     st.className = ''; st.textContent = '';
