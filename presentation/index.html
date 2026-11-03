@@ -230,28 +230,6 @@
   <aside class="notes"><p>~1 min. The circRNA discovery module is mandatory; miRNA prediction and differential expression are optional. Three dependencies (Java, Nextflow, container client), not two.</p><p><b>Points removed from the slide (say them aloud):</b></p><ul><li><b>Input:</b> paired-end FASTQ, or BAM reverted to FASTQ. FastQC summaries; optional adapter removal with BBDUK. iGenomes references for 18 species, or user-supplied FASTA/GTF.</li><li><b>Implementation:</b> modular processes executed in containers with pinned software versions. Developed to nf-core guidelines: continuous integration testing, documentation and community review.</li><li><b>Deployment:</b> configuration profiles for local, HPC and cloud execution. Requirements: Java &ge; 8, Nextflow and a container client (Docker or Apptainer).</li></ul><p><b>References:</b> Digby et al., 2023; Di Tommaso et al., 2017; Ewels et al., 2020.</p></aside>
 </section>
 
-<section class="slide" data-sec="nfcore" data-min="1.5" data-title="Demonstration: PRJNA742881">
-  <p class="kicker">nf-core/circrna &middot; Chapter 3</p>
-  <h1>Demonstration: re-analysis of a published <em>C. elegans</em> total RNA-seq dataset (PRJNA742881)</h1>
-  <div class="body c2" style="grid-template-columns:1.15fr .85fr">
-    <figure style="--fh:395px;align-self:center">
-      <img src="../Chapter2/Figures/figure2.png" alt="Comparison of filtered circRNAs with the original study">
-      <figcaption>Thesis Figure 3.2. (A) circRNAs called per tool; (B) overlap with the original study; (C) genomic distribution of shared and additional circRNAs.</figcaption>
-    </figure>
-    <div class="col" style="align-self:center">
-      <h3>Computational performance</h3>
-      <table class="tbl" style="font-size:17px">
-        <tr><th>Resource</th><th class="n">Value</th></tr>
-        <tr><td>Wall-clock time</td><td class="n">18 h 21 min</td></tr>
-        <tr><td>CPU hours</td><td class="n">1,566</td></tr>
-        <tr><td>Allocation (SLURM)</td><td class="n">8 CPUs, 60 GB</td></tr>
-        <tr><td>Peak process memory</td><td class="n">~38 GB</td></tr>
-      </table>
-    </div>
-  </div>
-  <aside class="notes"><p>~1 min. CIRI2 was omitted because CIRIquant wraps it; DCC was omitted because it failed at 120 GB RAM on this high-coverage RPAD dataset and had the lowest precision in simulation. Anticipated question: how do you know the 2,420 are real? Answer: this is not claimed; read support does not establish circularity, and RT-PCR, RNase R resistance and junction sequencing would be needed.</p><p><b>Points removed from the slide (say them aloud):</b> six samples (N2 and <em>fust-1</em> mutant, n = 3 each; 70&ndash;93 million reads per sample), WBcel235. CIRCexplorer2, CIRIquant, find_circ and MapSplice (F1 &gt; 91% in simulation); &ge; 15 BSJ reads (CIRIquant), as in the original study. 4,435 circRNAs shared with the original study, 2,420 additional, 521 unique to the original. The additional circRNAs are candidates for experimental follow-up; no ground truth is available.</p><p><b>Computational performance</b> (table moved here from the workflow outputs slide): memory peaks were the find_circ and CIRIquant alignment steps; all other processes used &lt; 10 GB. The 38 GB figure is a per-process peak on this dataset; Table 3.3 (simulation) reports whole-tool memory on a different dataset, so the two are not directly comparable. Per-process detail is in the supplementary slides (S2).</p><p><b>References:</b> Digby et al., 2023; Cao et al., 2021 (original study); thesis Table 3.2 and Figure 3.4.</p></aside>
-</section>
-
 <section class="slide" data-sec="nfcore" data-min="1.75" data-title="Tool performance and consensus">
   <p class="kicker">nf-core/circrna &middot; Chapter 3</p>
   <h1>Performance of individual tools and of consensus calling on simulated data</h1>
@@ -285,6 +263,28 @@
     </div>
   </div>
   <aside class="notes"><p>~1.25 min. The thesis writes the number of sets as nCk with n = 6 giving 126; that formula is the permutation formula and 126 equals the sum of C(7,k) for k = 1 to 6. Check what was run (seven tools, set sizes 1 to 6) and be ready to correct the text. Differences among the top combinations are small (F1 97.35&ndash;97.83%, top ten), so no single set should be presented as uniquely optimal.</p><p><b>References:</b> Digby et al., 2023; thesis Figure 3.6 and Table 3.4.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="1.5" data-title="Demonstration: PRJNA742881">
+  <p class="kicker">nf-core/circrna &middot; Chapter 3</p>
+  <h1>Demonstration: re-analysis of a published <em>C. elegans</em> total RNA-seq dataset (PRJNA742881)</h1>
+  <div class="body c2" style="grid-template-columns:1.15fr .85fr">
+    <figure style="--fh:395px;align-self:center">
+      <img src="../Chapter2/Figures/figure2.png" alt="Comparison of filtered circRNAs with the original study">
+      <figcaption>Thesis Figure 3.2. (A) circRNAs called per tool; (B) overlap with the original study; (C) genomic distribution of shared and additional circRNAs.</figcaption>
+    </figure>
+    <div class="col" style="align-self:center">
+      <h3>Computational performance</h3>
+      <table class="tbl" style="font-size:17px">
+        <tr><th>Resource</th><th class="n">Value</th></tr>
+        <tr><td>Wall-clock time</td><td class="n">18 h 21 min</td></tr>
+        <tr><td>CPU hours</td><td class="n">1,566</td></tr>
+        <tr><td>Allocation (SLURM)</td><td class="n">8 CPUs, 60 GB</td></tr>
+        <tr><td>Peak process memory</td><td class="n">~38 GB</td></tr>
+      </table>
+    </div>
+  </div>
+  <aside class="notes"><p>~1 min. CIRI2 was omitted because CIRIquant wraps it; DCC was omitted because it failed at 120 GB RAM on this high-coverage RPAD dataset and had the lowest precision in simulation. Anticipated question: how do you know the 2,420 are real? Answer: this is not claimed; read support does not establish circularity, and RT-PCR, RNase R resistance and junction sequencing would be needed.</p><p><b>Points removed from the slide (say them aloud):</b> six samples (N2 and <em>fust-1</em> mutant, n = 3 each; 70&ndash;93 million reads per sample), WBcel235. CIRCexplorer2, CIRIquant, find_circ and MapSplice (F1 &gt; 91% in simulation); &ge; 15 BSJ reads (CIRIquant), as in the original study. 4,435 circRNAs shared with the original study, 2,420 additional, 521 unique to the original. The additional circRNAs are candidates for experimental follow-up; no ground truth is available.</p><p><b>Computational performance</b> (table moved here from the workflow outputs slide): memory peaks were the find_circ and CIRIquant alignment steps; all other processes used &lt; 10 GB. The 38 GB figure is a per-process peak on this dataset; Table 3.3 (simulation) reports whole-tool memory on a different dataset, so the two are not directly comparable. Per-process detail is in the supplementary slides (S2).</p><p><b>References:</b> Digby et al., 2023; Cao et al., 2021 (original study); thesis Table 3.2 and Figure 3.4.</p></aside>
 </section>
 
 <section class="slide" data-sec="nfcore" data-min="0.5" data-title="Chapter 3: contributions to the field">
