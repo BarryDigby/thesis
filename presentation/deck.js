@@ -40,6 +40,30 @@
     stage.style.transform = `translate(-50%,-50%) scale(${s})`;
   }
 
+  /* ---------- section progress ticker ---------- */
+  const TICKER_SECS = ['intro', 'review', 'nfcore', 'pycircdb', 'cerna', 'disc'];
+  const tickerEl = document.createElement('div');
+  tickerEl.id = 'ticker';
+  tickerEl.setAttribute('aria-hidden', 'true');
+  const tickEls = [];
+  slides.forEach((s, k) => {
+    if (!TICKER_SECS.includes(s.dataset.sec)) return;
+    const t = document.createElement('i');
+    t.className = 'tk-t';
+    t.style.setProperty('--c', secColor(s.dataset.sec));
+    tickerEl.appendChild(t);
+    tickEls[k] = t;
+  });
+  stage.appendChild(tickerEl);
+
+  function updateTicker() {
+    tickerEl.style.display = (slides[idx].dataset.sec === 'appendix' || idx === 0) ? 'none' : 'flex';
+    tickEls.forEach((t, k) => {
+      if (!t) return;
+      t.classList.toggle('done', k <= idx);
+    });
+  }
+
   function show(i, revealAll = false) {
     idx = Math.max(0, Math.min(slides.length - 1, i));
     slides.forEach((s, k) => {
@@ -53,6 +77,7 @@
     document.querySelector('#progress i').style.width = `${((idx + 1) / slides.length) * 100}%`;
     const note = slides[idx].querySelector('.notes');
     notesEl.innerHTML = note ? note.innerHTML : '';
+    updateTicker();
     updateHud();
   }
 

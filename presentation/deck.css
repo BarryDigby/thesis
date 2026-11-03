@@ -1,8 +1,8 @@
 :root{
   --ink:#1c2430; --muted:#586574; --rule:#cdd5dd; --paper:#fff;
   --accent:#1f4e79; --accent-soft:#e8eff6; --hl:#a63d2f; --hl-soft:#f7e9e6;
-  --s-intro:#46566a; --s-review:#7a5c1e; --s-nfcore:#1f6f5c; --s-pycircdb:#1f4e79;
-  --s-cerna:#5b3f8c; --s-disc:#8a3b3b; --s-appendix:#6b7280;
+  --s-intro:#5f6b7a; --s-review:#b36b00; --s-nfcore:#00785a; --s-pycircdb:#1f80c4;
+  --s-cerna:#7b3294; --s-disc:#9c1c1c; --s-appendix:#6b7280;
   --hud:40px;
 }
 *{box-sizing:border-box}
@@ -14,7 +14,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0f1b2a;color:var(--in
   transform-origin:center center;box-shadow:0 10px 40px rgba(0,0,0,.45);overflow:hidden}
 
 /* ---------- slide frame ---------- */
-.slide{position:absolute;inset:0;display:none;flex-direction:column;padding:30px 64px 26px;
+.slide{position:absolute;inset:0;display:none;flex-direction:column;padding:30px 64px 56px;
   border-top:6px solid var(--sc,var(--accent))}
 .slide.active{display:flex}
 .slide[data-sec=intro]{--sc:var(--s-intro)}
@@ -26,14 +26,19 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0f1b2a;color:var(--in
 .slide[data-sec=appendix]{--sc:var(--s-appendix)}
 .notes{display:none}
 
-.kicker{margin:0 0 4px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--sc)}
+.kicker{margin:0 0 4px;font-size:18px;letter-spacing:.01em;font-weight:600;color:var(--sc)}
 h1{margin:0 0 14px;font-size:30px;line-height:1.2;font-weight:600;letter-spacing:-.005em}
 h3{margin:0 0 8px;font-size:19px;font-weight:600;color:var(--sc)}
 .body{flex:1;min-height:0;display:grid;gap:28px;grid-template-rows:minmax(0,1fr);align-content:start}
 .body.c2{grid-template-columns:1fr 1fr}
 .body.stack{grid-template-columns:1fr;grid-template-rows:none;gap:16px;align-content:start}
 .col{min-width:0;min-height:0}
-.refs{margin:8px 0 0;padding-top:6px;border-top:1px solid var(--rule);font-size:13px;color:var(--muted);line-height:1.35}
+.foot{margin:8px 0 0;font-size:13px;color:var(--muted);line-height:1.35}
+
+/* ---------- section progress ticker ---------- */
+#ticker{position:absolute;left:64px;right:64px;bottom:16px;height:12px;display:flex;gap:2px;align-items:center;pointer-events:none}
+.tk-t{flex:1;height:6px;background:var(--c);opacity:.2;border-radius:1px}
+.tk-t.done{opacity:1}
 
 ul.t{margin:0;padding-left:22px;font-size:20px;line-height:1.38}
 ul.t li{margin-bottom:9px}
@@ -44,6 +49,19 @@ p.t{margin:0 0 10px;font-size:20px;line-height:1.4}
 .muted{color:var(--muted)}
 .eq{font-family:Cambria,"Times New Roman",serif;font-size:21px;line-height:1.7}
 code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f1f4f7;padding:1px 5px;border-radius:3px;white-space:nowrap}
+mark.tm{background:#bfe8cf;color:#0b4a2b;font-weight:700;padding:0 3px;border-radius:3px;box-shadow:inset 0 -2px 0 #1f9d5b}
+.tbl tr.tm-row td{background:#f1faf5}
+
+/* ---------- code block (JSON highlighting; blue / amber / violet, distinguishable under colour-vision deficiency) ---------- */
+.codeblock{width:100%;max-width:1000px;background:#0f1b2a;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(15,27,42,.25)}
+.codeblock .codebar{background:#1a2b40;color:#9fb3c8;font:600 15px "Segoe UI",system-ui,sans-serif;padding:8px 18px;border-bottom:1px solid #2a3d55}
+.codeblock pre{margin:0;padding:12px 24px;font:16.5px/1.38 Consolas,"DejaVu Sans Mono","Courier New",monospace;color:#d6e2ef;white-space:pre}
+.codeblock .codebar{padding:6px 18px}
+.codeblock .c{color:#6f8398;user-select:none}
+.codeblock .k{color:#79c0ff}
+.codeblock .s{color:#f2b866}
+.codeblock .n{color:#c9a7ff}
+.codeblock .p{color:#8da2b8}
 
 /* ---------- tables ---------- */
 table.tbl{border-collapse:collapse;width:100%;font-size:18px;line-height:1.3}
@@ -55,6 +73,13 @@ table.tbl{border-collapse:collapse;width:100%;font-size:18px;line-height:1.3}
 .tbl tr.hl td{background:var(--hl-soft);font-weight:600}
 .tbl.sm{font-size:16px} .tbl.sm th,.tbl.sm td{padding:5px 8px}
 .tbl.xs{font-size:14px} .tbl.xs th,.tbl.xs td{padding:3px 8px}
+.tbl.gene-tbl th,.tbl.gene-tbl td{padding:4px 8px}
+.tbl.gene-tbl tr.pick td{background:#f1e8f6;font-weight:600}
+.tbl.gene-tbl tr.pick td:first-child{box-shadow:inset 4px 0 0 var(--sc)}
+.tbl tr.sumrow td{font-weight:700;border-top:2px solid var(--ink)}
+.tbl.nolines td{border-bottom:0}
+.tbl.nolines tr:last-child td{border-bottom:2px solid var(--ink)}
+.tbl tr.valrow td{border-bottom:2px solid var(--ink)}
 .tbl caption{caption-side:bottom;text-align:left;font-size:13px;color:var(--muted);padding-top:6px}
 
 /* ---------- figures ---------- */
@@ -67,11 +92,15 @@ figcaption{font-size:13.5px;color:var(--muted);line-height:1.35;align-self:stret
 .frag.shown{opacity:1;pointer-events:auto}
 
 /* ---------- title slide ---------- */
-.slide.title{justify-content:space-between;padding-top:44px}
-.title .logo{height:62px;width:auto;align-self:flex-start}
-.title h1{font-size:40px;line-height:1.22;max-width:1100px;margin:6px 0 0}
+.slide.title{justify-content:flex-start;padding-top:36px;padding-bottom:30px}
+.title .logos{display:flex;align-items:center;justify-content:space-between;width:100%;
+  padding-bottom:18px;border-bottom:1px solid var(--rule)}
+.title .logo{height:130px;width:auto}
+.title .heading{flex:1;display:flex;flex-direction:column;justify-content:center}
+.title .heading::before{content:"";display:block;width:84px;height:5px;background:var(--hl);margin-bottom:26px}
+.title h1{font-size:42px;line-height:1.2;max-width:1120px;margin:0;letter-spacing:-.01em}
 .title .lead{font-size:20px;color:var(--muted);margin:0}
-.title .by{font-size:19px;line-height:1.55;color:var(--muted)}
+.title .by{font-size:19px;line-height:1.55;color:var(--muted);padding-top:16px;border-top:1px solid var(--rule)}
 .title .by strong{display:block;font-size:28px;color:var(--ink);margin-bottom:4px}
 
 /* ---------- flow / steps ---------- */
@@ -84,19 +113,32 @@ figcaption{font-size:13.5px;color:var(--muted);line-height:1.35;align-self:stret
 .steps li::before{content:counter(s);position:absolute;left:14px;top:8px;width:26px;height:26px;border-radius:50%;
   background:var(--sc);color:#fff;font-size:15px;font-weight:600;text-align:center;line-height:26px}
 .steps li b{font-weight:600}
+.steps.big li{margin:0 0 18px;padding:16px 20px 16px 62px;font-size:23px;line-height:1.35}
+.steps.big li::before{left:18px;top:15px}
+.para h3{margin:0 0 4px;font-size:21px;font-weight:700;color:var(--sc)}
+.para p{margin:0 0 20px;font-size:21px;line-height:1.4}
+.para p:last-child{margin-bottom:0}
+.para sup{line-height:0}
+
+/* ---------- chapter recap boxes ---------- */
+.recap{display:flex;flex-direction:column;gap:20px;width:88%;max-width:1020px}
+.recap .rc{border:1px solid var(--rule);border-left:10px solid var(--sc);background:#fafbfc;padding:26px 32px;font-size:28px;line-height:1.3;font-weight:600;color:var(--ink);box-shadow:0 2px 8px rgba(15,27,42,.07)}
 
 /* ---------- rank charts ---------- */
 .rank .toggle{display:flex;gap:8px;align-items:center;margin:0 0 10px}
 .rank .toggle span{font-size:15px;color:var(--muted);margin-right:2px}
 .rank .toggle button{border:1px solid var(--rule);background:#fff;border-radius:4px;padding:4px 14px;font-size:15px;color:var(--ink);cursor:pointer;font-family:inherit}
 .rank .toggle button[aria-pressed=true]{background:var(--sc);border-color:var(--sc);color:#fff}
+.rank .toggle button.opt{margin-left:auto}
 .rank .rows{position:relative}
-.rank .row{position:absolute;left:0;right:0;display:grid;align-items:center;gap:10px;transition:transform .45s ease}
+.rank .row{position:absolute;left:0;right:0;display:grid;align-items:center;gap:10px;transition:transform .45s ease,opacity .3s ease}
 .rank .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rank .name i{font-style:normal;color:var(--muted);font-size:.85em}
 .rank .track{background:#eef1f4;border-radius:3px;overflow:hidden}
 .rank .fill{height:100%;width:0;background:var(--sc);transition:width .45s ease}
 .rank .row.warn .fill{background:var(--hl)}
+.rank .row.self .fill{background:#000}
+.rank .row.self .name{font-weight:700}
 .rank .row.ref .fill{background:#8a97a6}
 .rank .row.ref .name,.rank .row.warn .name{font-weight:600}
 .rank .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
@@ -104,12 +146,15 @@ figcaption{font-size:13.5px;color:var(--muted);line-height:1.35;align-self:stret
 .rank .detail{min-height:22px;margin-top:4px;font-size:14.5px;color:var(--muted)}
 
 /* ---------- line plot ---------- */
-svg.plot text{font-family:inherit;font-size:13px;fill:var(--ink)}
+svg.plot text{font-family:inherit;font-size:15px;fill:var(--ink)}
 svg.plot .ax{stroke:var(--ink);stroke-width:1}
 svg.plot .gr{stroke:var(--rule);stroke-width:1}
 svg.plot .ln{fill:none;stroke:var(--sc);stroke-width:2}
 svg.plot .pt{fill:var(--sc);stroke:var(--sc);stroke-width:2}
 svg.plot .pt.open{fill:#fff}
+svg.plot .ann{fill:var(--sc);fill-opacity:.16;stroke:var(--sc);stroke-width:2}
+svg.plot .ann-link{stroke:var(--sc);stroke-width:1.5;stroke-dasharray:3 3}
+svg.plot text.ann-t{font-size:11.5px;font-weight:700;fill:#0f5688}
 
 /* ---------- HUD / notes / overview ---------- */
 #hud{position:fixed;left:0;right:0;bottom:0;height:var(--hud);background:#0b1522;color:#c9d6e2;font-size:14px}
@@ -143,5 +188,14 @@ svg.plot .pt.open{fill:#fff}
   #stage{position:static;width:auto;height:auto;transform:none!important;box-shadow:none}
   .slide{display:flex!important;position:relative;width:1280px;height:720px;page-break-after:always}
   .frag{opacity:1!important}
-  #hud,#notes,#overview{display:none!important}
+  #hud,#notes,#overview,#ticker{display:none!important}
 }
+.tbl.hetero{font-size:12.5px;line-height:1.15} .tbl.hetero th,.tbl.hetero td{padding:2px 8px}
+.tbl.hetero td.hm{color:#b36b00;font-weight:600} .tbl.hetero td.hh{color:#9c1c1c;font-weight:700}
+.qa{display:flex;flex-direction:column;gap:14px;height:100%;padding-bottom:6px}
+.qa .row{flex:1;min-height:0;display:grid;grid-template-columns:.9fr 1.1fr;gap:32px;align-items:stretch}
+.qa .fbox{font-size:21px;line-height:1.3;display:flex;flex-direction:column;justify-content:center;padding:10px 22px;border-left-width:6px}
+.qa .fbox b{font-size:19px;margin-bottom:6px}
+.qa .ans{align-self:center}
+.qa .ans p{font-size:20px;line-height:1.35}
+.qa .ans p.muted{font-size:17px;color:var(--muted)}
