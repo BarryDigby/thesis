@@ -39,12 +39,12 @@
   <p class="kicker">Introduction &middot; Chapter 1</p>
   <h1>Overview: computational tools for circRNA analysis, and a ceRNA network informed prognostic signature in prostate cancer</h1>
   <div class="body stack" style="gap:10px;width:84%;margin:0 auto">
-    <div class="fbox" style="--sc:var(--s-intro)"><b>Background &middot; Chapter 1</b>Biochemical recurrence and resistance to androgen-deprivation therapy in prostate cancer; circRNAs as candidate biomarkers within the ceRNA network.</div>
+    <div class="fbox" style="--sc:var(--s-intro)"><b>Chapter 1 &middot; Background</b>Biochemical recurrence and resistance to androgen-deprivation therapy in prostate cancer; circRNAs as candidate biomarkers within the ceRNA network.</div>
     <div class="fbox" style="--sc:var(--s-review)"><b>Chapter 2 &middot; Review <span style="float:right;font-weight:400;font-size:15px;color:var(--muted)"><em>BMC Genomics</em> 2024</span></b>Common pitfalls in circRNA quantification & annotation: discordance among detection tools and heterogeneity of circRNA databases.</div>
     <div class="fbox" style="--sc:var(--s-nfcore)"><b>Chapter 3 &middot; nf-core/circrna <span style="float:right;font-weight:400;font-size:15px;color:var(--muted)"><em>BMC Bioinformatics</em> 2023</span></b>A portable workflow for the quantification, miRNA target prediction and differential expression analysis of circRNAs</div>
     <div class="fbox" style="--sc:var(--s-pycircdb)"><b>Chapter 4 &middot; pycircdb <span style="float:right;font-weight:400;font-size:15px;color:var(--muted)"><em>Bioinformatics Advances</em> 2026</span></b>Integrated circRNA database annotation for computational workflows.</div>
     <div class="fbox" style="--sc:var(--s-cerna)"><b>Chapter 5 &middot; ceRNA-derived prognostic signature <span style="float:right;font-weight:400;font-size:15px;color:var(--muted)"><em>Scientific Reports</em>, under review 2026</span></b>Competing endogenous RNA axis defines a prognostic signature for biochemical recurrence in prostate cancer</div>
-    <div class="fbox" style="--sc:var(--s-disc)"><b>Chapter 6 &middot; Discussion</b>Summary of contributions and future directions.</div>
+    <div class="fbox" style="--sc:var(--s-disc)"><b>Discussion</b>Summary of contributions and future directions.</div>
   </div>
   <aside class="notes"><p>~0.5 min. Roadmap only. Chapters 2&ndash;4 address the computational challenges of circRNA analysis (research questions 1 and 2); Chapter 5 uses circRNAs within a ceRNA network to derive a prognostic signature (question 3). The questions themselves are stated on the next slide.</p></aside>
 </section>
@@ -54,7 +54,7 @@
   <h1>Androgen receptor signalling and resistance to androgen-deprivation therapy in prostate cancer</h1>
   <div class="body c2" style="grid-template-columns:.8fr 1.2fr;gap:32px">
     <ul class="t" style="font-size:19px;line-height:1.4;margin:0;padding-bottom:px;display:flex;flex-direction:column;justify-content:center;gap:18px">
-      <li style="margin:0">Prostate cancer (PCa) is the second most frequently diagnosed cancer in men, driven by androgen receptor (AR) signalling. Primary treatment is surgery; approximately 35% of men experience biochemical recurrence (BCR).</li>
+      <li style="margin:0">Prostate cancer (PCa) is the second most frequently diagnosed cancer in men, driven by androgen receptor (AR) signalling. Primary treatment is surgery; approximately 1 in 3 men experience biochemical recurrence (BCR).</li>
       <li style="margin:0">Recurrence treated with second-generation antiandrogens such as enzalutamide, but 20&ndash;40% of patients are intrinsically resistant and all eventually progress to castration-resistant prostate cancer (CRPC).</li>
       <li style="margin:0">Current signatures derived from modelling gene expression alone. Non-coding RNAs, which regulate gene expression, are of growing interest in cancer as biomarkers and therapeutic targets.</li>
     </ul>
@@ -146,7 +146,7 @@
         <h3>Rationale</h3>
         <p>The dataset contains no circRNAs - every 'circRNA' called is a false positive.</p>
         <h3>Finding</h3>
-        <p>False-positive calls ranged from 0 to 1,084 per tool, highlighting the blind-spots inherent in each tool.</p>
+        <p>False-positive calls ranged from 1 to 1,084 per tool, highlighting the blind-spots inherent in each tool.</p>
       </div>
     </div>
     <figure style="--fh:440px">
@@ -1339,7 +1339,7 @@
 </footer>
 
 <noscript>This presentation requires JavaScript.</noscript>
-<script src="charts.js?v=boot4"></script>
+<script src="charts.js?v=btn2"></script>
 <script src="deck.js?v=kick2"></script>
 </body>
 </html>
