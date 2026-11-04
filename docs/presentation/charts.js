@@ -5,8 +5,8 @@
   /* ---------- generic ranked bar chart ---------- */
   function rankChart(root, cfg) {
     const { rows, metrics, rowH = 40, nameW = 190, valW = 76, min = 0, max = 100,
-            decimals = 2, suffix = '%', fontSize = 17, barH = 0.58, note = '', hint = '', optional = null, nameAlign = 'left' } = cfg;
-    let key = metrics[0].key;
+            decimals = 2, suffix = '%', fontSize = 17, barH = 0.58, note = '', hint = '', optional = null, nameAlign = 'left', initialKey = null } = cfg;
+    let key = initialKey || metrics[0].key;
     let showOpt = optional ? !!optional.initial : true;
     root.classList.add('rank');
     root.innerHTML = '';
@@ -19,7 +19,7 @@
         const b = document.createElement('button');
         b.type = 'button';
         b.textContent = m.label;
-        b.setAttribute('aria-pressed', String(i === 0));
+        b.setAttribute('aria-pressed', String(m.key === key));
         b.addEventListener('click', () => {
           key = m.key;
           tg.querySelectorAll('button:not(.opt)').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
@@ -107,7 +107,7 @@
   const toolsEl = document.getElementById('chart-tools');
   if (toolsEl) rankChart(toolsEl, {
     rows: TOOLS, rowH: 48, nameW: 232, valW: 80, max: 100, fontSize: 19,
-    metrics: [{ key: 'f', label: 'F1' }, { key: 'p', label: 'Precision' }, { key: 's', label: 'Sensitivity' }],
+    metrics: [{ key: 'p', label: 'Precision' }, { key: 's', label: 'Sensitivity' }, { key: 'f', label: 'F1' }],
     optional: { label: 'Show consensus', match: r => r.cls === 'self', initial: false },
     note: 'Simulated glioblastoma dataset (7,267 circRNAs); ≥2 BSJ reads required per call. Axis 0–100%.',
     hint: 'Hover a row for detail.',

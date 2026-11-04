@@ -39,12 +39,12 @@
   <p class="kicker">Introduction &middot; Chapter 1</p>
   <h1>Overview: computational tools for circRNA analysis, and a ceRNA network informed prognostic signature in prostate cancer</h1>
   <div class="body stack" style="gap:10px;width:84%;margin:0 auto">
-    <div class="fbox" style="--sc:var(--s-intro)"><b>Background &middot; Chapter 1</b>Biochemical recurrence and resistance to androgen-deprivation therapy in prostate cancer; circRNAs as candidate biomarkers within the ceRNA network.</div>
+    <div class="fbox" style="--sc:var(--s-intro)"><b>Chapter 1 &middot; Background</b>Biochemical recurrence and resistance to androgen-deprivation therapy in prostate cancer; circRNAs as candidate biomarkers within the ceRNA network.</div>
     <div class="fbox" style="--sc:var(--s-review)"><b>Chapter 2 &middot; Review <span style="float:right;font-weight:400;font-size:15px;color:var(--muted)"><em>BMC Genomics</em> 2024</span></b>Common pitfalls in circRNA quantification & annotation: discordance among detection tools and heterogeneity of circRNA databases.</div>
     <div class="fbox" style="--sc:var(--s-nfcore)"><b>Chapter 3 &middot; nf-core/circrna <span style="float:right;font-weight:400;font-size:15px;color:var(--muted)"><em>BMC Bioinformatics</em> 2023</span></b>A portable workflow for the quantification, miRNA target prediction and differential expression analysis of circRNAs</div>
     <div class="fbox" style="--sc:var(--s-pycircdb)"><b>Chapter 4 &middot; pycircdb <span style="float:right;font-weight:400;font-size:15px;color:var(--muted)"><em>Bioinformatics Advances</em> 2026</span></b>Integrated circRNA database annotation for computational workflows.</div>
     <div class="fbox" style="--sc:var(--s-cerna)"><b>Chapter 5 &middot; ceRNA-derived prognostic signature <span style="float:right;font-weight:400;font-size:15px;color:var(--muted)"><em>Scientific Reports</em>, under review 2026</span></b>Competing endogenous RNA axis defines a prognostic signature for biochemical recurrence in prostate cancer</div>
-    <div class="fbox" style="--sc:var(--s-disc)"><b>Chapter 6 &middot; Discussion</b>Summary of contributions and future directions.</div>
+    <div class="fbox" style="--sc:var(--s-disc)"><b>Discussion</b>Summary of contributions and future directions.</div>
   </div>
   <aside class="notes"><p>~0.5 min. Roadmap only. Chapters 2&ndash;4 address the computational challenges of circRNA analysis (research questions 1 and 2); Chapter 5 uses circRNAs within a ceRNA network to derive a prognostic signature (question 3). The questions themselves are stated on the next slide.</p></aside>
 </section>
@@ -54,9 +54,9 @@
   <h1>Androgen receptor signalling and resistance to androgen-deprivation therapy in prostate cancer</h1>
   <div class="body c2" style="grid-template-columns:.8fr 1.2fr;gap:32px">
     <ul class="t" style="font-size:19px;line-height:1.4;margin:0;padding-bottom:px;display:flex;flex-direction:column;justify-content:center;gap:18px">
-      <li style="margin:0">Prostate cancer (PCa) is the second most frequently diagnosed cancer in men, driven by androgen receptor (AR) signalling. Primary treatment is surgery; approximately 35% of men experience biochemical recurrence (BCR).</li>
+      <li style="margin:0">Prostate cancer (PCa) is the second most frequently diagnosed cancer in men, driven by androgen receptor (AR) signalling. Primary treatment is surgery; approximately 1 in 3 men experience biochemical recurrence (BCR).</li>
       <li style="margin:0">Recurrence treated with second-generation antiandrogens such as enzalutamide, but 20&ndash;40% of patients are intrinsically resistant and all eventually progress to castration-resistant prostate cancer (CRPC).</li>
-      <li style="margin:0">Current signatures derived from modelling gene expression alone. Non-coding RNAs, which regulate gene expression, are of growing interest in cancer as biomarkers and therapeutic targets.</li>
+      <li style="margin:0">Current signatures derived from modelling gene expression + clinical features. Non-coding RNAs, which regulate gene expression, are of growing interest in cancer as biomarkers and therapeutic targets.</li>
     </ul>
     <figure style="--fh:700px;align-self:center">
       <div style="overflow:hidden;width:100%">
@@ -122,7 +122,7 @@
         <h3>Experimental setup</h3>
         <p>Five circRNA identification tools were run on the same HeLa and Hs68 sequencing libraries, with and without RNase R treatment.</p>
         <h3>Ground truth</h3>
-        <p>circRNAs called in RNase R<sup>&minus;</sup> libraries but depleted in RNase R<sup>+</sup> libraries were counted as false positives.</p>
+        <p>circRNAs called in untreated (RNase R<sup>&minus;</sup>) libraries but depleted in RNase R<sup>+</sup> libraries were counted as false positives.</p>
         <h3>Finding</h3>
         <p>Only 854 of the 5,071 true positive set were called by all five tools; the intersection of all tools had a false-positive rate of 6.56%, at the cost of sensitivity.</p>
       </div>
@@ -146,7 +146,7 @@
         <h3>Rationale</h3>
         <p>The dataset contains no circRNAs - every 'circRNA' called is a false positive.</p>
         <h3>Finding</h3>
-        <p>False-positive calls ranged from 0 to 1,084 per tool, highlighting the blind-spots inherent in each tool.</p>
+        <p>False-positive calls ranged from 1 to 1,084 per tool, highlighting the blind-spots inherent in each tool.</p>
       </div>
     </div>
     <figure style="--fh:440px">
@@ -230,28 +230,6 @@
   <aside class="notes"><p>~1 min. The circRNA discovery module is mandatory; miRNA prediction and differential expression are optional. Three dependencies (Java, Nextflow, container client), not two.</p><p><b>Points removed from the slide (say them aloud):</b></p><ul><li><b>Input:</b> paired-end FASTQ, or BAM reverted to FASTQ. FastQC summaries; optional adapter removal with BBDUK. iGenomes references for 18 species, or user-supplied FASTA/GTF.</li><li><b>Implementation:</b> modular processes executed in containers with pinned software versions. Developed to nf-core guidelines: continuous integration testing, documentation and community review.</li><li><b>Deployment:</b> configuration profiles for local, HPC and cloud execution. Requirements: Java &ge; 8, Nextflow and a container client (Docker or Apptainer).</li></ul><p><b>References:</b> Digby et al., 2023; Di Tommaso et al., 2017; Ewels et al., 2020.</p></aside>
 </section>
 
-<section class="slide" data-sec="nfcore" data-min="1.5" data-title="Demonstration: PRJNA742881">
-  <p class="kicker">nf-core/circrna &middot; Chapter 3</p>
-  <h1>Demonstration: re-analysis of a published <em>C. elegans</em> total RNA-seq dataset (PRJNA742881)</h1>
-  <div class="body c2" style="grid-template-columns:1.15fr .85fr">
-    <figure style="--fh:395px;align-self:center">
-      <img src="../Chapter2/Figures/figure2.png" alt="Comparison of filtered circRNAs with the original study">
-      <figcaption>Thesis Figure 3.2. (A) circRNAs called per tool; (B) overlap with the original study; (C) genomic distribution of shared and additional circRNAs.</figcaption>
-    </figure>
-    <div class="col" style="align-self:center">
-      <h3>Computational performance</h3>
-      <table class="tbl" style="font-size:17px">
-        <tr><th>Resource</th><th class="n">Value</th></tr>
-        <tr><td>Wall-clock time</td><td class="n">18 h 21 min</td></tr>
-        <tr><td>CPU hours</td><td class="n">1,566</td></tr>
-        <tr><td>Allocation (SLURM)</td><td class="n">8 CPUs, 60 GB</td></tr>
-        <tr><td>Peak process memory</td><td class="n">~38 GB</td></tr>
-      </table>
-    </div>
-  </div>
-  <aside class="notes"><p>~1 min. CIRI2 was omitted because CIRIquant wraps it; DCC was omitted because it failed at 120 GB RAM on this high-coverage RPAD dataset and had the lowest precision in simulation. Anticipated question: how do you know the 2,420 are real? Answer: this is not claimed; read support does not establish circularity, and RT-PCR, RNase R resistance and junction sequencing would be needed.</p><p><b>Points removed from the slide (say them aloud):</b> six samples (N2 and <em>fust-1</em> mutant, n = 3 each; 70&ndash;93 million reads per sample), WBcel235. CIRCexplorer2, CIRIquant, find_circ and MapSplice (F1 &gt; 91% in simulation); &ge; 15 BSJ reads (CIRIquant), as in the original study. 4,435 circRNAs shared with the original study, 2,420 additional, 521 unique to the original. The additional circRNAs are candidates for experimental follow-up; no ground truth is available.</p><p><b>Computational performance</b> (table moved here from the workflow outputs slide): memory peaks were the find_circ and CIRIquant alignment steps; all other processes used &lt; 10 GB. The 38 GB figure is a per-process peak on this dataset; Table 3.3 (simulation) reports whole-tool memory on a different dataset, so the two are not directly comparable. Per-process detail is in the supplementary slides (S2).</p><p><b>References:</b> Digby et al., 2023; Cao et al., 2021 (original study); thesis Table 3.2 and Figure 3.4.</p></aside>
-</section>
-
 <section class="slide" data-sec="nfcore" data-min="1.75" data-title="Tool performance and consensus">
   <p class="kicker">nf-core/circrna &middot; Chapter 3</p>
   <h1>Performance of individual tools and of consensus calling on simulated data</h1>
@@ -285,6 +263,28 @@
     </div>
   </div>
   <aside class="notes"><p>~1.25 min. The thesis writes the number of sets as nCk with n = 6 giving 126; that formula is the permutation formula and 126 equals the sum of C(7,k) for k = 1 to 6. Check what was run (seven tools, set sizes 1 to 6) and be ready to correct the text. Differences among the top combinations are small (F1 97.35&ndash;97.83%, top ten), so no single set should be presented as uniquely optimal.</p><p><b>References:</b> Digby et al., 2023; thesis Figure 3.6 and Table 3.4.</p></aside>
+</section>
+
+<section class="slide" data-sec="nfcore" data-min="1.5" data-title="Demonstration: PRJNA742881">
+  <p class="kicker">nf-core/circrna &middot; Chapter 3</p>
+  <h1>Demonstration: re-analysis of a published <em>C. elegans</em> total RNA-seq dataset (PRJNA742881)</h1>
+  <div class="body c2" style="grid-template-columns:1.15fr .85fr">
+    <figure style="--fh:395px;align-self:center">
+      <img src="../Chapter2/Figures/figure2.png" alt="Comparison of filtered circRNAs with the original study">
+      <figcaption>Thesis Figure 3.2. (A) circRNAs called per tool; (B) overlap with the original study; (C) genomic distribution of shared and additional circRNAs.</figcaption>
+    </figure>
+    <div class="col" style="align-self:center">
+      <h3>Computational performance</h3>
+      <table class="tbl" style="font-size:17px">
+        <tr><th>Resource</th><th class="n">Value</th></tr>
+        <tr><td>Wall-clock time</td><td class="n">18 h 21 min</td></tr>
+        <tr><td>CPU hours</td><td class="n">1,566</td></tr>
+        <tr><td>Allocation (SLURM)</td><td class="n">8 CPUs, 60 GB</td></tr>
+        <tr><td>Peak process memory</td><td class="n">~38 GB</td></tr>
+      </table>
+    </div>
+  </div>
+  <aside class="notes"><p>~1 min. CIRI2 was omitted because CIRIquant wraps it; DCC was omitted because it failed at 120 GB RAM on this high-coverage RPAD dataset and had the lowest precision in simulation. Anticipated question: how do you know the 2,420 are real? Answer: this is not claimed; read support does not establish circularity, and RT-PCR, RNase R resistance and junction sequencing would be needed.</p><p><b>Points removed from the slide (say them aloud):</b> six samples (N2 and <em>fust-1</em> mutant, n = 3 each; 70&ndash;93 million reads per sample), WBcel235. CIRCexplorer2, CIRIquant, find_circ and MapSplice (F1 &gt; 91% in simulation); &ge; 15 BSJ reads (CIRIquant), as in the original study. 4,435 circRNAs shared with the original study, 2,420 additional, 521 unique to the original. The additional circRNAs are candidates for experimental follow-up; no ground truth is available.</p><p><b>Computational performance</b> (table moved here from the workflow outputs slide): memory peaks were the find_circ and CIRIquant alignment steps; all other processes used &lt; 10 GB. The 38 GB figure is a per-process peak on this dataset; Table 3.3 (simulation) reports whole-tool memory on a different dataset, so the two are not directly comparable. Per-process detail is in the supplementary slides (S2).</p><p><b>References:</b> Digby et al., 2023; Cao et al., 2021 (original study); thesis Table 3.2 and Figure 3.4.</p></aside>
 </section>
 
 <section class="slide" data-sec="nfcore" data-min="0.5" data-title="Chapter 3: contributions to the field">
@@ -421,7 +421,7 @@
       <div class="frag"><div class="farrow" style="text-align:center;line-height:1.1">&darr;</div><div class="fbox" style="padding:12px 22px;font-size:21px"><b style="font-size:19px">2 &middot; Target prediction</b>circRNA&ndash;miRNA and miRNA&ndash;mRNA pairs</div></div>
       <div class="frag"><div class="farrow" style="text-align:center;line-height:1.1">&darr;</div><div class="fbox" style="padding:12px 22px;font-size:21px"><b style="font-size:19px">3 &middot; ceRNA filtering</b>Inverse expression of paired RNAs</div></div>
       <div class="frag"><div class="farrow" style="text-align:center;line-height:1.1">&darr;</div><div class="fbox" style="padding:12px 22px;font-size:21px"><b style="font-size:19px">4 &middot; Model development</b>CoxBoost on network mRNAs, Gleason score and PSA (nine cohorts)</div></div>
-      <div class="frag"><div class="farrow" style="text-align:center;line-height:1.1">&darr;</div><div class="fbox" style="padding:12px 22px;font-size:21px"><b style="font-size:19px">5 &middot; Evaluation</b>Bootstrap optimism, internal&ndash;external cross-validation, external validation, published signatures</div></div>
+      <div class="frag"><div class="farrow" style="text-align:center;line-height:1.1">&darr;</div><div class="fbox" style="padding:12px 22px;font-size:21px"><b style="font-size:19px">5 &middot; Evaluation</b>Bootstrap, internal&ndash;external cross-validation, external validation, published signatures</div></div>
     </div>
   </div>
   <aside class="notes"><p>~0.75 min. Animated: each click reveals the next step. The central design choice is using network topology as a prior for feature selection, rather than purely data-driven reduction. Evaluate how the choice compares with glmnet or random survival forests: those methods did not produce predictor sets of suitable size (limitations).</p><p><b>Points removed from the slide (say them aloud):</b> high-dimensional transcriptomic data with few events risk overfitting when features are selected without constraint. The ceRNA hypothesis provides a knowledge-based restriction of the feature space across circRNA, miRNA and mRNA. Prior ceRNA-based prognostic studies typically report limited validation and little heterogeneity across cohorts. Datasets: two circRNA, seven miRNA and five mRNA expression datasets for network construction; ten survival cohorts for modelling and validation.</p><p><b>References:</b> Digby et al., 2026 (under review); Steyerberg et al., 2015; Riley et al., 2016; Dhiman et al., 2021.</p></aside>
@@ -529,24 +529,6 @@
   <aside class="notes"><p>~1.25 min. Points removed from the slide (say them aloud): a core subset of genes was selected consistently across resamples; others (MAPK8IP2, B4GALT1) were unstable. Gleason score was the most frequently selected predictor (118 of 200) but was not retained in the model fitted to the original data. The chart lists the model predictors in order of bootstrap selection frequency (full list in thesis Supplementary Table 5.S5).</p><p><b>Optimism correction (removed from the slide):</b> apparent Harrell&rsquo;s C 0.7291; mean optimism over 200 bootstraps 0.04725; optimism-corrected C 0.6818. The optimism estimate re-runs predictor selection within each bootstrap sample, so it accounts for selection-induced overfitting. Expected discrimination in new data is therefore closer to 0.68 than 0.73.</p><p><b>References:</b> Digby et al., 2026 (under review); Harrell et al., 1996; thesis Table 5.S5.</p></aside>
 </section>
 
-<section class="slide" data-sec="cerna" data-min="0.75" data-title="Gene-level biological context">
-  <p class="kicker">ceRNA prognostic signature &middot; Chapter 5</p>
-  <h1>Biological context of selected signature genes</h1>
-  <div class="body stack" style="align-content:center">
-    <table class="tbl gene-tbl" style="font-size:19px;line-height:1.3">
-      <tr><th style="width:12%">Gene</th><th class="n" style="width:9%">logFC</th><th style="width:19%;white-space:nowrap">HR (95% CI)</th><th>Previously reported context</th><th style="width:13%">Our finding</th></tr>
-      <tr><td><em>BTN3A1</em></td><td class="n">&minus;1.41</td><td style="white-space:nowrap">0.95 (0.85&ndash;1.06)</td><td>Downregulated in breast and non-small cell lung cancer, where low expression is associated with worse overall survival; positively correlated with tumour-infiltrating immune cells</td><td>Concordant</td></tr>
-      <tr><td><em>SPARC</em></td><td class="n">&minus;0.48</td><td style="white-space:nowrap">1.11 (0.96&ndash;1.29)</td><td>Higher in patients with metastases and higher Gleason score; downregulation in PCa also reported</td><td>Mixed</td></tr>
-      <tr><td><em>MAPK8IP2</em></td><td class="n">+2.35</td><td style="white-space:nowrap">1.07 (0.95&ndash;1.21)</td><td>Upregulated in multiple cancers, associated with BCR and upregulated in CRPC</td><td>Concordant</td></tr>
-      <tr><td><em>LIX1</em></td><td class="n">&minus;2.48</td><td style="white-space:nowrap">0.87 (0.77&ndash;0.98)</td><td>Downregulation in PCa and CRPC, associated with poor outcomes</td><td>Concordant</td></tr>
-      <tr><td><em>B4GALT1</em></td><td class="n">&minus;0.45</td><td style="white-space:nowrap">0.94 (0.84&ndash;1.05)</td><td>Silenced by AKR1C3/AR-V7 complex in CRPC, suppressing tumour suppressor activity</td><td>Concordant</td></tr>
-      <tr><td><em>SS18L2</em></td><td class="n">+0.54</td><td style="white-space:nowrap">1.06 (0.96&ndash;1.18)</td><td>No prior PCa literature; knockdown induces G2/M arrest and apoptosis in breast cancer cells</td><td>Novel</td></tr>
-    </table>
-  </div>
-  <p class="foot">logFC: PCa and enzalutamide-resistant samples; HR from the multivariable Cox model; &ldquo;Our finding&rdquo; compares direction of change with the literature.</p>
-  <aside class="notes"><p>~1 min. Six genes to discuss (of the 23). <b>BTN3A1</b> (&minus;1.41 logFC; HR 0.95, 95% CI 0.85&ndash;1.06): a butyrophilin family membrane protein involved in T-cell activation and immune regulation; a tumour suppressor in breast and non-small cell lung cancer, where lower expression is associated with worse overall survival and it is positively correlated with tumour-infiltrating immune cells; our similar downregulation in PCa is concordant. <b>SPARC</b> (&minus;0.48; HR 1.11): high expression is reported in patients with metastases and higher Gleason scores, which our result contradicts, but it agrees with studies showing SPARC downregulated in PCa. <b>MAPK8IP2</b> (2.35; HR 1.07): upregulated in multiple cancers, associated with BCR and upregulated in CRPC samples; consistent. <b>LIX1</b> (&minus;2.48; HR 0.87, 0.77&ndash;0.98): the only gene here with a confidence interval excluding 1; downregulation mitigates its protective effect against BCR, consistent with Fan et al., 2025. <b>SS18L2</b> (0.54; HR 1.06): no literature links it to prostate cancer, so it is a novel candidate; knockdown induces G2/M arrest and apoptosis in triple-negative breast cancer cells. <b>B4GALT1</b> (&minus;0.45; HR 0.94): one of seven beta-1,4-galactosyltransferase genes, upregulated in bladder, lung and renal cell carcinomas; in CRPC it is silenced by the androgenic enzyme AKR1C3, facilitating progression. Our downregulation in PCa and enzalutamide resistance suggests its protective effect against BCR is mitigated.</p><p><b>Genes removed from the slide:</b> SFRP4 (+1.40; HR 1.07; Wnt modulator in several signatures including Oncotype DX), BGN (+1.37; HR 1.12; no independent value beyond clinical covariates, Jacobsen et al., 2017), NEU3, BHLHE40, PDCD4 and FA2H (upregulated, +0.62, consistent with the CMU5 signature). Also in the signature: NPAS2, PHYHD1, FAM227B, RBM47, RAB11FIP2, MTERF4, CNBD2, RNF122, IAH1 and RNASEH2B; IAH1 and RNASEH2B are little studied in cancer, which underscores the hypothesis-generating value of the model.</p><p>Most individual hazard ratios have confidence intervals spanning 1, as expected for a multivariable index; only <em>LIX1</em> (and <em>SSTR1</em> in Figure 5.1) are nominally significant.</p><p><b>References:</b> Digby et al., 2026 (under review); Liang et al., 2021 (BTN3A1); Wang et al., 2020 (B4GALT1); Fan et al., 2025.</p></aside>
-</section>
-
 <section class="slide" data-sec="cerna" data-min="1.0" data-title="External validation">
   <p class="kicker">ceRNA prognostic signature &middot; Chapter 5</p>
   <h1>External validation in an independent cohort (GSE46602)</h1>
@@ -562,7 +544,7 @@
     </table>
     <ul class="t sm" style="font-size:16px;margin:0">
       <li><b>Calibration slope:</b> regression slope of observed outcome on the prognostic index; 1 = ideal fit.</li>
-      <li><b>Harrell&rsquo;s C:</b> proportion of comparable patient pairs in which the higher-risk patient has BCR earlier.</li>
+      <li><b>Harrell&rsquo;s C:</b> proportion of comparable patient pairs in which the model correctly predicts the order of events.</li>
     </ul>
     <p class="t sm muted" style="font-size:13px;margin:0">*HR = log-hazard ratio (Cox regression coefficient, not exponentiated)</p>
   </div>
@@ -592,13 +574,31 @@
   <aside class="notes"><p>~1.25 min. Present this plainly: discrimination is lower than several published signatures in this small cohort. The distinct gene content is the argument for network-derived selection; neither the ranking nor the 5-year AUC in 36 patients should be over-interpreted. Table 5.3 lists 17 published signatures; check why Yang (28 genes) is absent.</p><p><b>Points removed from the slide (say them aloud):</b> 30 published signatures (3&ndash;222 genes) were refitted as Cox models using the same cohort; coefficients were unavailable, so only feature selection is compared, and no clinical covariates are included. Signatures with more than 28 predictors were excluded (12): overfitting in 36 patients produced undefined C-indices and very wide intervals. This signature (C 0.71) ranks below most retained signatures on C; the highest was Long et al. (0.98). Only <em>SFRP4</em> and <em>BGN</em> are shared with any published signature.</p><p><b>References:</b> Digby et al., 2026 (under review), thesis Table 5.3 and Table 5.S4.</p></aside>
 </section>
 
+<section class="slide" data-sec="cerna" data-min="0.75" data-title="Gene-level biological context">
+  <p class="kicker">ceRNA prognostic signature &middot; Chapter 5</p>
+  <h1>Biological context of selected signature genes</h1>
+  <div class="body stack" style="align-content:center">
+    <table class="tbl gene-tbl" style="font-size:19px;line-height:1.3">
+      <tr><th style="width:12%">Gene</th><th class="n" style="width:9%">logFC</th><th style="width:19%;white-space:nowrap">HR (95% CI)</th><th>Previously reported context</th><th style="width:13%">Our finding</th></tr>
+      <tr><td><em>BTN3A1</em></td><td class="n">&minus;1.41</td><td style="white-space:nowrap">0.95 (0.85&ndash;1.06)</td><td>Downregulated in breast and non-small cell lung cancer, where low expression is associated with worse overall survival; positively correlated with tumour-infiltrating immune cells</td><td>Concordant</td></tr>
+      <tr><td><em>SPARC</em></td><td class="n">&minus;0.48</td><td style="white-space:nowrap">1.11 (0.96&ndash;1.29)</td><td>Higher in patients with metastases and higher Gleason score; downregulation in PCa also reported</td><td>Mixed</td></tr>
+      <tr><td><em>MAPK8IP2</em></td><td class="n">+2.35</td><td style="white-space:nowrap">1.07 (0.95&ndash;1.21)</td><td>Upregulated in multiple cancers, associated with BCR and upregulated in CRPC</td><td>Concordant</td></tr>
+      <tr><td><em>LIX1</em></td><td class="n">&minus;2.48</td><td style="white-space:nowrap">0.87 (0.77&ndash;0.98)</td><td>Downregulation in PCa and CRPC, associated with poor outcomes</td><td>Concordant</td></tr>
+      <tr><td><em>B4GALT1</em></td><td class="n">&minus;0.45</td><td style="white-space:nowrap">0.94 (0.84&ndash;1.05)</td><td>Silenced by AKR1C3/AR-V7 complex in CRPC, suppressing tumour suppressor activity</td><td>Concordant</td></tr>
+      <tr><td><em>SS18L2</em></td><td class="n">+0.54</td><td style="white-space:nowrap">1.06 (0.96&ndash;1.18)</td><td>No prior PCa literature; knockdown induces G2/M arrest and apoptosis in breast cancer cells</td><td>Novel</td></tr>
+    </table>
+  </div>
+  <p class="foot">logFC: PCa and enzalutamide-resistant samples; HR from the multivariable Cox model; &ldquo;Our finding&rdquo; compares direction of change with the literature.</p>
+  <aside class="notes"><p>~1 min. Six genes to discuss (of the 23). <b>BTN3A1</b> (&minus;1.41 logFC; HR 0.95, 95% CI 0.85&ndash;1.06): a butyrophilin family membrane protein involved in T-cell activation and immune regulation; a tumour suppressor in breast and non-small cell lung cancer, where lower expression is associated with worse overall survival and it is positively correlated with tumour-infiltrating immune cells; our similar downregulation in PCa is concordant. <b>SPARC</b> (&minus;0.48; HR 1.11): high expression is reported in patients with metastases and higher Gleason scores, which our result contradicts, but it agrees with studies showing SPARC downregulated in PCa. <b>MAPK8IP2</b> (2.35; HR 1.07): upregulated in multiple cancers, associated with BCR and upregulated in CRPC samples; consistent. <b>LIX1</b> (&minus;2.48; HR 0.87, 0.77&ndash;0.98): the only gene here with a confidence interval excluding 1; downregulation mitigates its protective effect against BCR, consistent with Fan et al., 2025. <b>SS18L2</b> (0.54; HR 1.06): no literature links it to prostate cancer, so it is a novel candidate; knockdown induces G2/M arrest and apoptosis in triple-negative breast cancer cells. <b>B4GALT1</b> (&minus;0.45; HR 0.94): one of seven beta-1,4-galactosyltransferase genes, upregulated in bladder, lung and renal cell carcinomas; in CRPC it is silenced by the androgenic enzyme AKR1C3, facilitating progression. Our downregulation in PCa and enzalutamide resistance suggests its protective effect against BCR is mitigated.</p><p><b>Genes removed from the slide:</b> SFRP4 (+1.40; HR 1.07; Wnt modulator in several signatures including Oncotype DX), BGN (+1.37; HR 1.12; no independent value beyond clinical covariates, Jacobsen et al., 2017), NEU3, BHLHE40, PDCD4 and FA2H (upregulated, +0.62, consistent with the CMU5 signature). Also in the signature: NPAS2, PHYHD1, FAM227B, RBM47, RAB11FIP2, MTERF4, CNBD2, RNF122, IAH1 and RNASEH2B; IAH1 and RNASEH2B are little studied in cancer, which underscores the hypothesis-generating value of the model.</p><p>Most individual hazard ratios have confidence intervals spanning 1, as expected for a multivariable index; only <em>LIX1</em> (and <em>SSTR1</em> in Figure 5.1) are nominally significant.</p><p><b>References:</b> Digby et al., 2026 (under review); Liang et al., 2021 (BTN3A1); Wang et al., 2020 (B4GALT1); Fan et al., 2025.</p></aside>
+</section>
+
 <section class="slide" data-sec="cerna" data-min="0.5" data-title="Chapter 5: contributions to the field">
   <p class="kicker">ceRNA prognostic signature &middot; Chapter 5</p>
   <h1>Chapter 5: summary of contributions</h1>
   <div class="body" style="grid-template-columns:1fr;justify-items:center;align-items:center">
     <div class="recap">
       <div class="rc">Demonstrated the use of a ceRNA network as a biological prior to constrain feature selection and derive a prognostic signature.</div>
-      <div class="rc">Rigorous, transparent evaluation: bootstrap optimism correction, internal&ndash;external cross-validation and external validation.</div>
+      <div class="rc">Rigorous, transparent evaluation: bootstrap, internal&ndash;external cross-validation and external validation.</div>
       <div class="rc">A 23-gene signature largely distinct from published/commercial signatures.</div>
     </div>
   </div>
@@ -1339,7 +1339,7 @@
 </footer>
 
 <noscript>This presentation requires JavaScript.</noscript>
-<script src="charts.js?v=boot4"></script>
+<script src="charts.js?v=btn3"></script>
 <script src="deck.js?v=kick2"></script>
 </body>
 </html>
